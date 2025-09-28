@@ -1,0 +1,94 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #003566 0%, #003566 60%, #001d3d 100%);
+  color: white;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+@media screen and (max-width: 768px) {
+  .buttons {
+    flex-direction: column;
+  }
+
+  .buttons a {
+    margin: 0.5rem 0 !important;
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+.homeContent {
+  padding: 4rem 0;
+}
+
+.contentDescription {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.imageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.featureImage {
+  max-width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.featureImage:hover {
+  transform: translateY(-5px);
+}
+
+/* Enhanced responsive styling */
+@media screen and (max-width: 996px) {
+  .homeContent {
+    padding: 3rem 1.5rem;
+  }
+
+  .contentDescription {
+    font-size: 1.1rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .homeContent .row {
+    flex-direction: column-reverse;
+  }
+
+  .homeContent .col {
+    width: 100%;
+    flex-basis: 100%;
+    max-width: 100%;
+    margin-bottom: 2rem;
+  }
+
+  .imageContainer {
+    margin-bottom: 2rem;
+  }
+}

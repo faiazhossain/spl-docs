@@ -1,0 +1,11 @@
+services:
+  spl-docs:
+    image: rilusmahmud/spl-docs:main-1.0.0
+    container_name: spl-maps
+    restart: unless-stopped
+    ports:
+      - "4003:3000"
+    env_file:
+      - .env
+    environment:
+      - API_SPEC_VERSION=${API_SPEC_VERSION:-1.0.0}

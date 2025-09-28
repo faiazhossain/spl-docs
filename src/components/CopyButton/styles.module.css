@@ -1,0 +1,56 @@
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 10px;
+  color: var(--ifm-color-primary-darkest);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.copyButton:hover {
+  background-color: var(--ifm-color-primary-lightest);
+}
+
+.copyButton:active {
+  transform: translateY(1px);
+}
+
+.copyIcon {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.copyText {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .copyText {
+    display: inline;
+  }
+}
+
+/* Show animation when copied */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.copyButton:has(.copyText:contains("Copied")) {
+  background-color: #4caf50;
+  color: white;
+  animation: fadeIn 0.2s;
+}

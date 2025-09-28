@@ -1,0 +1,82 @@
+.features {
+  display: flex;
+  align-items: center;
+  padding: 4rem 0;
+  width: 100%;
+}
+
+.featureSvg {
+  height: 150px;
+  width: 150px;
+  transition: transform 0.3s ease;
+}
+
+.featureSvg:hover {
+  transform: scale(1.1);
+}
+
+/* Add card-style features for a modern look */
+.col {
+  padding: 1.5rem !important;
+}
+
+.col > div {
+  height: 100%;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.col > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.featureCard {
+  height: 100%;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--ifm-color-primary-dark);
+  transition: all 0.3s ease;
+}
+
+.featureCard:hover {
+  transform: translateY(-5px);
+}
+
+.buttons {
+  margin-top: 1.5rem;
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 768px) {
+  .features {
+    padding: 2rem 0;
+  }
+
+  .featureSvg {
+    height: 120px;
+    width: 120px;
+  }
+
+  .col {
+    padding: 1rem !important;
+  }
+
+  .col > div {
+    padding: 1rem;
+  }
+
+  .featureCard {
+    padding: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .featureSvg {
+    height: 100px;
+    width: 100px;
+  }
+}
