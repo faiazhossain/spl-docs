@@ -49,7 +49,6 @@ This project includes comprehensive documentation to help you get started and bu
 - **Expo CLI**: `npm install -g @expo/cli`
 - **A code editor** (VS Code recommended)
 - **Android Studio** (for Android development) OR **Xcode** (for iOS development, macOS only)
-- **Barikoi API Key** (Free registration at [https://developer.barikoi.com](https://developer.barikoi.com/))
 
 ### Step-by-Step Setup for Beginners
 
@@ -120,7 +119,6 @@ npm run ios      # Starts app on iOS simulator (requires Xcode)
 
 - ✅ Check if you added your API key correctly in `utils/mapUtils.ts`
 - ✅ Make sure you're connected to internet
-- ✅ Verify the API key is active on Barikoi dashboard
 - ✅ Check browser console for error messages
 
 ### ❌ "App crashes on startup"
@@ -194,7 +192,7 @@ npm run ios      # Starts app on iOS simulator (requires Xcode)
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="/docs/screenshots/simple-map.png" alt="Basic map display with Barikoi styling" width="100%" /><br />
+      <img src="/docs/screenshots/simple-map.png" alt="Basic map display with SPL styling" width="100%" /><br />
       <em>Basic map display</em>
     </td>
     <td align="center" width="50%">
@@ -279,26 +277,6 @@ const { status } = await Location.requestForegroundPermissionsAsync();
 // Get current location
 const location = await Location.getCurrentPositionAsync({});
 ```
-
-## ❓ Frequently Asked Questions
-
-**Q: Do I need to pay for Barikoi Maps?**
-A: No, Barikoi offers a generous free tier for development and small projects.
-
-**Q: Can I use this with my existing React Native app?**
-A: Yes! Check the [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) for integration instructions.
-
-**Q: Does this work on iOS simulator?**
-A: Maps work fine, but location features work best on real devices.
-
-**Q: How many API calls do I get for free?**
-A: Check current limits on [Barikoi pricing page](https://barikoi.com/pricing).
-
-**Q: Can I customize the map style?**
-A: Yes! Barikoi provides multiple style options and custom styling capabilities.
-
-**Q: Is this production-ready?**
-A: Yes, this code follows React Native best practices and is suitable for production apps.
 
 ## 🔧 Customization Guide
 
