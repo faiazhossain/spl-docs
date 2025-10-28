@@ -72,16 +72,11 @@ const config = {
           routeBasePath: "/api",
         },
         specs: [
-          //           const apiSpecUrl =
-          //   process.env.API_SPEC_URL ||
-          //   "https://na-maps.vng-solutions.com/spl/openapi.json";
-
-          // const apiSpecVersion = process.env.API_SPEC_VERSION || Date.now();
           {
             spec: `${
               process.env.API_SPEC_URL ||
               "https://na-maps.vng-solutions.com/spl/openapi.json"
-            }?v=${process.env.API_SPEC_VERSION || Date.now()}`,
+            }?v=${Math.floor(Date.now() / (5 * 60 * 1000))}`, // Cache for 5 minutes
             id: "spl-redoc",
             route: "/api",
           },

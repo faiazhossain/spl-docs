@@ -8,4 +8,4 @@ services:
     env_file:
       - .env
     environment:
-      - API_SPEC_VERSION=${API_SPEC_VERSION:-1.0.0}
+      - API_SPEC_URL=${API_SPEC_URL:-https://na-maps.vng-solutions.com/spl/openapi.json}
