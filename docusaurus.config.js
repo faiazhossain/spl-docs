@@ -125,6 +125,11 @@ const config = {
                 docId: "maps/react-native", // react-native.md
                 label: "React Native Guide",
               },
+              {
+                type: "doc",
+                docId: "maps/arcgis-qgis-integration", // arcgis-qgis-integration.md
+                label: "ArcGIS & QGIS Integration",
+              },
             ],
           },
           {
