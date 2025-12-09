@@ -8,25 +8,67 @@ import Link from "@docusaurus/Link";
 
 const mapStyles = [
   {
-    id: "bgmaps",
-    name: "SPL Background Maps",
+    id: "bgmaps-bilingual",
+    name: "SPL Light Maps (Bilingual)",
     url: "https://na-maps.vng-solutions.com/styles/spl_bgmaps/style.json",
     description:
-      "A clean base map with subtle colors, perfect for data visualization overlays.",
+      "A clean base map with bilingual labels (English & Arabic), perfect for data visualization overlays.",
   },
   {
-    id: "dark",
-    name: "SPL Dark",
+    id: "bgmaps-english",
+    name: "SPL Light Maps (English)",
+    url: "https://na-maps.vng-solutions.com/styles/spl_bgmaps_en/style.json",
+    description:
+      "A clean base map with English-only labels, perfect for data visualization overlays.",
+  },
+  {
+    id: "bgmaps-arabic",
+    name: "SPL Light Maps (Arabic)",
+    url: "https://na-maps.vng-solutions.com/styles/spl_bgmaps_ar/style.json",
+    description:
+      "A clean base map with Arabic-only labels, perfect for data visualization overlays.",
+  },
+  {
+    id: "dark-bilingual",
+    name: "SPL Dark (Bilingual)",
     url: "https://na-maps.vng-solutions.com/styles/spl_dark/style.json",
     description:
-      "A dark-themed map for night mode or dark interfaces, reducing eye strain in low-light environments.",
+      "A dark-themed map with bilingual labels (English & Arabic) for night mode or dark interfaces.",
   },
   {
-    id: "satellite",
-    name: "SPL Satellite",
+    id: "dark-english",
+    name: "SPL Dark (English)",
+    url: "https://na-maps.vng-solutions.com/styles/spl_dark_en/style.json",
+    description:
+      "A dark-themed map with English-only labels for night mode or dark interfaces.",
+  },
+  {
+    id: "dark-arabic",
+    name: "SPL Dark (Arabic)",
+    url: "https://na-maps.vng-solutions.com/styles/spl_dark_ar/style.json",
+    description:
+      "A dark-themed map with Arabic-only labels for night mode or dark interfaces.",
+  },
+  {
+    id: "satellite-bilingual",
+    name: "SPL Satellite (Bilingual)",
     url: "https://na-maps.vng-solutions.com/styles/spl_satellite/style.json",
     description:
-      "High-resolution satellite imagery showing real-world terrain and features.",
+      "High-resolution satellite imagery with bilingual labels (English & Arabic) showing real-world terrain and features.",
+  },
+  {
+    id: "satellite-english",
+    name: "SPL Satellite (English)",
+    url: "https://na-maps.vng-solutions.com/styles/spl_satellite_en/style.json",
+    description:
+      "High-resolution satellite imagery with English-only labels showing real-world terrain and features.",
+  },
+  {
+    id: "satellite-arabic",
+    name: "SPL Satellite (Arabic)",
+    url: "https://na-maps.vng-solutions.com/styles/spl_satellite_ar/style.json",
+    description:
+      "High-resolution satellite imagery with Arabic-only labels showing real-world terrain and features.",
   },
 ];
 

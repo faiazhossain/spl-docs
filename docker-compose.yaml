@@ -1,7 +1,9 @@
 services:
   spl-docs:
-    image: rilusmahmud/spl-docs:main-1.0.6
-    container_name: spl-maps
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spl-docs
     restart: unless-stopped
     ports:
       - "4003:3000"
