@@ -92,6 +92,7 @@ export default function Maps() {
                 Explore the different map styles available in the SPL Maps API.
                 Click on a style to view it in the map below.
               </p>
+
               <div className='alert alert--primary' role='alert'>
                 <p>
                   <strong>Looking for integration guides?</strong> Check out our{" "}
@@ -99,6 +100,18 @@ export default function Maps() {
                     developer documentation
                   </Link>{" "}
                   to learn how to use these map styles in your applications.
+                </p>
+              </div>
+
+              <div className='alert alert--warning' role='alert'>
+                <p>
+                  <strong>Using Arabic or Bilingual styles?</strong> You must
+                  enable the RTL (Right-to-Left) text plugin for proper Arabic
+                  text rendering.{" "}
+                  <Link to='/docs/docs/maps/rtl-text-support'>
+                    Learn how to implement RTL support
+                  </Link>
+                  .
                 </p>
               </div>
             </div>

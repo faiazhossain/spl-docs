@@ -40,24 +40,34 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 ## Available Map Styles
 
-VNG Solutions provides three different map styles that you can use in your applications:
+VNG Solutions provides three different map styles, each available in three language variants:
+
+### Language Variants
+
+Each map style is available in three language options:
+
+1. **Bilingual (Default)**: Labels displayed in both English and Arabic
+2. **English Only**: Labels displayed in English only (add `_en` suffix)
+3. **Arabic Only**: Labels displayed in Arabic only (add `_ar` suffix)
+
+### Map Style URLs
 
 1. **SPL Background Maps**: A clean base map with subtle colors
 
-   ```
-   https://na-maps.vng-solutions.com/styles/spl_bgmaps/style.json
-   ```
+   - Bilingual: `https://na-maps.vng-solutions.com/styles/spl_bgmaps/style.json`
+   - English: `https://na-maps.vng-solutions.com/styles/spl_bgmaps_en/style.json`
+   - Arabic: `https://na-maps.vng-solutions.com/styles/spl_bgmaps_ar/style.json`
 
 2. **SPL Dark**: A dark-themed map for night mode or dark interfaces
 
-   ```
-   https://na-maps.vng-solutions.com/styles/spl_dark/style.json
-   ```
+   - Bilingual: `https://na-maps.vng-solutions.com/styles/spl_dark/style.json`
+   - English: `https://na-maps.vng-solutions.com/styles/spl_dark_en/style.json`
+   - Arabic: `https://na-maps.vng-solutions.com/styles/spl_dark_ar/style.json`
 
 3. **SPL Satellite**: Satellite imagery
-   ```
-   https://na-maps.vng-solutions.com/styles/spl_satellite/style.json
-   ```
+   - Bilingual: `https://na-maps.vng-solutions.com/styles/spl_satellite/style.json`
+   - English: `https://na-maps.vng-solutions.com/styles/spl_satellite_en/style.json`
+   - Arabic: `https://na-maps.vng-solutions.com/styles/spl_satellite_ar/style.json`
 
 ## Basic Map Integration
 
@@ -165,7 +175,7 @@ import maplibregl from "maplibre-gl";
 const map = new maplibregl.Map({
   container: "map",
   style: "https://na-maps.vng-solutions.com/styles/spl_bgmaps/style.json",
-  center: [46.915, 24.689]],
+  center: [46.915, 24.689],
   zoom: 9,
 });
 
@@ -174,12 +184,12 @@ const marker = new maplibregl.Marker({
   color: "#FF0000",
   draggable: true,
 })
-  .setLngLat([46.915, 24.689]])
+  .setLngLat([46.915, 24.689])
   .addTo(map);
 
 // Add a popup
 const popup = new maplibregl.Popup({ closeOnClick: false })
-  .setLngLat([46.915, 24.689]])
+  .setLngLat([46.915, 24.689])
   .setHTML("<h3>New York City</h3><p>The city that never sleeps</p>")
   .addTo(map);
 
@@ -189,6 +199,12 @@ const markerWithPopup = new maplibregl.Marker()
   .setPopup(new maplibregl.Popup().setHTML("<h3>Empire State Building</h3>"))
   .addTo(map);
 ```
+
+## Arabic Text Support
+
+When using bilingual or Arabic-only map styles, you need to enable the RTL (Right-to-Left) text plugin for proper Arabic text rendering. Without it, Arabic text will appear reversed and unreadable.
+
+For detailed instructions on implementing RTL support, see our [Arabic Text Support (RTL Plugin) guide](/docs/docs/maps/rtl-text-support).
 
 ## Best Practices
 
@@ -222,6 +238,7 @@ const markerWithPopup = new maplibregl.Marker()
 
 ## Additional Resources
 
+- [Arabic Text Support (RTL Plugin)](/docs/maps/rtl-text-support)
 - [MapLibre GL JS Documentation](https://maplibre.org/maplibre-gl-js/docs/)
 - [MapLibre Examples](https://maplibre.org/maplibre-gl-js/docs/examples/)
 

@@ -3,6 +3,9 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./styles.module.css";
 
+// Initialize RTL text plugin for proper Arabic text rendering
+let rtlPluginLoaded = false;
+
 export default function MapComponent({ styleUrl }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -11,6 +14,16 @@ export default function MapComponent({ styleUrl }) {
   const [zoom] = useState(6);
 
   useEffect(() => {
+    // Load RTL text plugin once
+    if (!rtlPluginLoaded) {
+      maplibregl.setRTLTextPlugin(
+        "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.js",
+        null, // callback
+        true // Lazy load the plugin
+      );
+      rtlPluginLoaded = true;
+    }
+
     if (map.current) return;
 
     map.current = new maplibregl.Map({
