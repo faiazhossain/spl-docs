@@ -73,10 +73,7 @@ const config = {
         },
         specs: [
           {
-            spec: `${
-              process.env.API_SPEC_URL ||
-              "https://na-maps.vng-solutions.com/spl/openapi.json"
-            }?v=${Math.floor(Date.now() / (5 * 60 * 1000))}`, // Cache for 5 minutes
+            spec: process.env.API_SPEC_URL || "openapi.json",
             id: "spl-redoc",
             route: "/api",
           },

@@ -6,7 +6,7 @@ services:
     container_name: spl-docs
     restart: unless-stopped
     ports:
-      - "4003:3000"
+      - "4003:80"
     env_file:
       - .env
     environment:

@@ -28,41 +28,70 @@ This command generates static content into the `build` directory and can be serv
 
 ### Docker Deployment
 
-For production deployment using Docker, we use a versioned tagging strategy to ensure consistent deployments:
+Multi-architecture images are built for `linux/amd64` and `linux/arm64` using Docker Buildx and pushed to Docker Hub.
 
-#### 1. Build Docker Image
+#### Prerequisites
 
-Build a new Docker image with a version tag:
+- Docker with Buildx support
+- Docker Hub account (logged in via `docker login`)
+- SSH access to the SPL server
 
-```bash
-docker build -t rilusmahmud/spl-docs:main-1.0.6 .
-```
+#### One-time Buildx setup
 
-Replace `main-1.0.6` with your desired version tag. We recommend using semantic versioning (e.g., `main-1.0.7`, `main-1.1.0`) for better version management.
-
-#### 2. Push to Registry (not necessary)
-
-Push the image to Docker Hub or your preferred container registry:
+If you have not created a multi-platform builder yet:
 
 ```bash
-docker push rilusmahmud/spl-docs:main-1.0.6
+docker buildx create --name multiarch --use
+docker buildx inspect --bootstrap
 ```
 
-#### 3. Deploy with Docker Compose
-
-Update your Docker Compose configuration to use the new image tag, then restart the services:
+#### 1. Build and push multi-arch image
 
 ```bash
-docker compose down && docker compose up -d
+docker buildx build --platform linux/amd64,linux/arm64 --push -t rilusmahmud/spl-docs:main-1.0.10 .
 ```
 
-This command will:
+Replace `main-1.0.10` with your desired version tag. Use semantic versioning (e.g., `main-1.0.11`, `main-1.1.0`).
 
-- Stop and remove existing containers (`docker compose down`)
-- Start services in detached mode with the updated configuration (`docker compose up -d`)
+#### 2. Deploy to SPL server
 
-#### Version Management
+SSH into the SPL server and run:
+
+```bash
+# Pull the latest image
+docker pull rilusmahmud/spl-docs:main-1.0.10
+
+# Stop and remove the existing container
+docker stop spl-docs && docker rm spl-docs
+
+# Run the new container
+docker run -d \
+  --name spl-docs \
+  --restart unless-stopped \
+  -p 4003:80 \
+  -e API_SPEC_URL=https://na-maps.vng-solutions.com/spl/openapi.json \
+  rilusmahmud/spl-docs:main-1.0.10
+```
+
+#### 3. Verify deployment
+
+```bash
+docker ps | grep spl-docs
+curl -I http://localhost:4003
+```
+
+#### Version management
 
 - Always create new image tags for each deployment
 - Use consistent naming convention: `rilusmahmud/spl-docs:main-<version>`
 - Keep track of deployed versions for easy rollback if needed
+
+### Local Docker Development
+
+Build and run locally using Docker Compose:
+
+```bash
+docker compose up
+```
+
+The site will be available at `http://localhost:4003`.
