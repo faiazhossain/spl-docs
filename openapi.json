@@ -303,7 +303,7 @@
       "get": {
         "tags": ["Reverse Geocode"],
         "summary": "[v1.0] Reverse Geocode",
-        "description": "V1 reverse geocode endpoint - backward compatible.\nConverts coordinates to addresses using v2.0 service.",
+        "description": "V1 reverse geocode endpoint - backward compatible. Converts coordinates to addresses using the v2.0 service.\n\n> **PRODUCTION USE -- You MUST use this v1 endpoint for production.**\n>\n> If you intend to use reverse geocode in a **production** environment, you **must** call this v1 endpoint against the production base URL below. **The v2.0 reverse geocode endpoint is NOT offered for production use.**\n>\n> **Production base URL:** `https://b2b.address.gov.sa/api`\n> **Full production endpoint:** `https://b2b.address.gov.sa/api/api/v1/reverse/geocode`\n\n### Production example\n\nReplace `YOUR_API_KEY` with your own API key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://b2b.address.gov.sa/api/api/v1/reverse/geocode?latitude=24.716786957077304&longitude=46.73486649780409&na=true&radius_m=200' \\\n--header 'x-apikey: YOUR_API_KEY'\n```",
         "operationId": "reverse_geocode_api_v1_reverse_geocode_get",
         "parameters": [
           {
@@ -1401,7 +1401,7 @@
       "get": {
         "tags": ["Reverse Geocode"],
         "summary": "[v2.0] Reverse Geocode",
-        "description": "Reverse geocoding endpoint - find POI at coordinates",
+        "description": "Reverse geocoding endpoint - find POI at coordinates.\n\n> **NOT AVAILABLE FOR PRODUCTION.**\n>\n> The v2.0 reverse geocode endpoint is **not** offered for production use. We only offer the **v1** reverse geocode endpoint for production. For any production environment, you **must** use the **[v1.0] Reverse Geocode** endpoint (see above) with the production base URL `https://b2b.address.gov.sa/api`.",
         "operationId": "reverse_search_api_v2_0_reverse_geocode_get",
         "parameters": [
           {
