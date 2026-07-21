@@ -9,7 +9,7 @@
       "get": {
         "tags": ["Search"],
         "summary": "[v1.0] Autocomplete Search",
-        "description": "V1 autocomplete search - backward compatible endpoint.\nInternally uses v2.0 service with field mapping.",
+        "description": "V1 autocomplete search - backward compatible endpoint. Internally uses the v2.0 service with field mapping.\n\n> **PRODUCTION USE -- You MUST use this v1 endpoint for production.**\n>\n> If you intend to use autocomplete search in a **production** environment, you **must** call this v1 endpoint against the production base URL below. **The v2.0 autocomplete search endpoint is NOT offered for production use.**\n>\n> **Production base URL:** `https://b2b.address.gov.sa/api`\n> **Full production endpoint:** `https://b2b.address.gov.sa/api/api/v1/search/autocomplete`\n\n### Production example\n\nReplace `YOUR_API_KEY` with your own API key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://b2b.address.gov.sa/api/api/v1/search/autocomplete?q=Riyadh&latitude=24.716786957077304&longitude=46.73486649780409&limit=10' \\\n--header 'x-apikey: YOUR_API_KEY'\n```",
         "operationId": "autocomplete_search_api_v1_search_autocomplete_get",
         "parameters": [
           {
@@ -1011,6 +1011,7 @@
       "get": {
         "tags": ["Search"],
         "summary": "[v2.0] Autocomplete Search",
+        "description": "Autocomplete search endpoint.\n\n> **NOT AVAILABLE FOR PRODUCTION.**\n>\n> The v2.0 autocomplete search endpoint is **not** offered for production use. We only offer the **v1** autocomplete search endpoint for production. For any production environment, you **must** use the **[v1.0] Autocomplete Search** endpoint (see above) with the production base URL `https://b2b.address.gov.sa/api`.",
         "operationId": "autocomplete_search_api_v2_0_search_autocomplete_get",
         "parameters": [
           {
