@@ -74,6 +74,18 @@ MapLibre GL JS works in any JavaScript framework. The [Plugins page](https://map
 
 For React Native (iOS and Android), see our [React Native guide](/docs/maps/react-native), which is built on [@maplibre/maplibre-react-native](https://maplibre.org/maplibre-react-native/).
 
+## Native Mobile SDKs (Android & iOS)
+
+The references above cover **MapLibre GL JS**, a web library. If you are building a native mobile app (Kotlin or Java on Android, Swift on iOS), use **MapLibre Native**, the same rendering engine packaged as platform SDKs. Your SPL `style.json` works unchanged because the [Style Specification](https://maplibre.org/maplibre-style-spec/) is shared across every MapLibre platform.
+
+| Platform | Resources |
+| --- | --- |
+| **Android** | [API Reference](https://maplibre.org/maplibre-native/android/api/) and [Examples](https://maplibre.org/maplibre-native/android/examples/). |
+| **iOS** | [API Documentation](https://maplibre.org/maplibre-native/ios/latest/documentation/maplibre). |
+| **All platforms** | [MapLibre Native project page](https://maplibre.org/projects/native/), [Developer Docs](https://maplibre.org/maplibre-native/docs/book/), and [GitHub](https://github.com/maplibre/maplibre-native). |
+
+For a single JavaScript/TypeScript codebase across iOS and Android, use our [React Native guide](/docs/maps/react-native) instead. Building with Compose Multiplatform? See [MapLibre Compose](https://maplibre.org/maplibre-compose/).
+
 ## Community & Ecosystem
 
 - [MapLibre on GitHub](https://github.com/maplibre) — source code, issues, and discussions.
