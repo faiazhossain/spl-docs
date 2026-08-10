@@ -127,6 +127,11 @@ const config = {
                 docId: "maps/arcgis-qgis-integration", // arcgis-qgis-integration.md
                 label: "ArcGIS & QGIS Integration",
               },
+              {
+                type: "doc",
+                docId: "maps/maplibre-resources", // maplibre-resources.md
+                label: "MapLibre Resources",
+              },
             ],
           },
           {

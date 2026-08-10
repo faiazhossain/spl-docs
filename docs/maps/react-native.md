@@ -149,7 +149,7 @@ npm run ios      # Starts app on iOS simulator (requires Xcode)
 
 ## 🖼️ Screenshots & Demo
 
-<!-- ### Core Features
+{/* ### Core Features
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
   <div>
@@ -185,7 +185,7 @@ npm run ios      # Starts app on iOS simulator (requires Xcode)
     <img src="/static/screenshots/advanced-map.jpg" width="100%" alt="Advanced map with multiple features">
     <p style="text-align: center;"><em>Advanced map with multiple features</em></p>
   </div>
-</div> -->
+</div> */}
 
 ### Core Features
 
