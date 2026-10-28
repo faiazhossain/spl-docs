@@ -11,7 +11,7 @@ sidebar_position: 5
 
 SPL Maps styles are rendered with **MapLibre GL JS**, an open-source mapping library. Because your SPL style URL is a standard MapLibre `style.json`, every feature, API method, and example in the official MapLibre documentation works directly with your SPL Maps integration.
 
-This page gathers the official MapLibre resources so you can go beyond the basics covered in [Using SPL Maps in JavaScript](/docs/maps/using-spl-maps).
+This page gathers the official MapLibre resources so you can go beyond the basics covered in [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps).
 
 :::note SPL Maps and MapLibre
 The SPL map style URL you pass to `new maplibregl.Map({ style })` is fully compatible with MapLibre GL JS. Anything you learn from the official MapLibre docs applies to SPL Maps without modification.
@@ -72,7 +72,7 @@ MapLibre GL JS works in any JavaScript framework. The [Plugins page](https://map
 - **Vue** — [@indoorequal/vue-maplibre-gl](https://github.com/indoorequal/vue-maplibre-gl).
 - **Svelte** — [svelte-maplibre-gl](https://github.com/MIERUNE/svelte-maplibre-gl).
 
-For React Native (iOS and Android), see our [React Native guide](/docs/maps/react-native), which is built on [@maplibre/maplibre-react-native](https://maplibre.org/maplibre-react-native/).
+For React Native (iOS and Android), see our [React Native guide](/docs/docs/maps/react-native), which is built on [@maplibre/maplibre-react-native](https://maplibre.org/maplibre-react-native/).
 
 ## Native Mobile SDKs (Android & iOS)
 
@@ -84,7 +84,7 @@ The references above cover **MapLibre GL JS**, a web library. If you are buildin
 | **iOS** | [API Documentation](https://maplibre.org/maplibre-native/ios/latest/documentation/maplibre). |
 | **All platforms** | [MapLibre Native project page](https://maplibre.org/projects/native/), [Developer Docs](https://maplibre.org/maplibre-native/docs/book/), and [GitHub](https://github.com/maplibre/maplibre-native). |
 
-For a single JavaScript/TypeScript codebase across iOS and Android, use our [React Native guide](/docs/maps/react-native) instead. Building with Compose Multiplatform? See [MapLibre Compose](https://maplibre.org/maplibre-compose/).
+For a single JavaScript/TypeScript codebase across iOS and Android, use our [React Native guide](/docs/docs/maps/react-native) instead. Building with Compose Multiplatform? See [MapLibre Compose](https://maplibre.org/maplibre-compose/).
 
 ## Community & Ecosystem
 
@@ -95,7 +95,7 @@ For a single JavaScript/TypeScript codebase across iOS and Android, use our [Rea
 
 ## Related SPL Maps Documentation
 
-- [Using SPL Maps in JavaScript](/docs/maps/using-spl-maps)
-- [Arabic Text Support (RTL)](/docs/maps/rtl-text-support)
-- [React Native Guide](/docs/maps/react-native)
-- [ArcGIS & QGIS Integration](/docs/maps/arcgis-qgis-integration)
+- [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps)
+- [Arabic Text Support (RTL)](/docs/docs/maps/rtl-text-support)
+- [React Native Guide](/docs/docs/maps/react-native)
+- [ArcGIS & QGIS Integration](/docs/docs/maps/arcgis-qgis-integration)

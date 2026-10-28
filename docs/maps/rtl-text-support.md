@@ -167,7 +167,7 @@ Always initialize the RTL text plugin **before** creating your first map instanc
 
 ## Related Documentation
 
-- [Using SPL Maps in JavaScript](/docs/maps/using-spl-maps)
+- [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps)
 - [MapLibre setRTLTextPlugin API Reference](https://maplibre.org/maplibre-gl-js/docs/API/functions/setRTLTextPlugin/)
 - [MapLibre RTL Script Example](https://maplibre.org/maplibre-gl-js/docs/examples/add-support-for-right-to-left-scripts/)
 - [MapLibre GL JS Documentation](https://maplibre.org/maplibre-gl-js/docs/)
