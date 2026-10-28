@@ -2,14 +2,15 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GeoSearch API",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "# Authentication\n\nEvery request must include a valid API key in the request header. Keys are issued through one of two gateways - use the key against the gateway it was issued for:\n\n- **B2B (Apigee):** send `x-apikey: YOUR_B2B_API_KEY` against `https://b2b.address.gov.sa`.\n- **Azure:** if your key was issued through Azure, send `Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY` against `https://apina.address.gov.sa/b2b`. Only the v1 endpoints are available on Azure.\n\nKeep API keys out of client-side code and never commit them to source control."
   },
   "paths": {
     "/api/v1/search/autocomplete": {
       "get": {
         "tags": ["Search"],
         "summary": "[v1.0] Autocomplete Search",
-        "description": "V1 autocomplete search - backward compatible endpoint. Internally uses the v2.0 service with field mapping.\n\n> **PRODUCTION USE -- You MUST use this v1 endpoint for production.**\n>\n> If you intend to use autocomplete search in a **production** environment, you **must** call this v1 endpoint against the production base URL below. **The v2.0 autocomplete search endpoint is NOT offered for production use.**\n>\n> **Production base URL:** `https://b2b.address.gov.sa/api`\n> **Full production endpoint:** `https://b2b.address.gov.sa/api/api/v1/search/autocomplete`\n\n### Production example\n\nReplace `YOUR_API_KEY` with your own API key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://b2b.address.gov.sa/api/api/v1/search/autocomplete?q=Riyadh&latitude=24.716786957077304&longitude=46.73486649780409&limit=10' \\\n--header 'x-apikey: YOUR_API_KEY'\n```",
+        "description": "V1 autocomplete search - backward compatible endpoint. Internally uses the v2.0 service with field mapping.\n\n> **PRODUCTION USE -- You MUST use this v1 endpoint for production.**\n>\n> If you intend to use autocomplete search in a **production** environment, you **must** call this v1 endpoint against the production base URL below. **The v2.0 autocomplete search endpoint is NOT offered for production use.**\n>\n> **Production base URL:** `https://b2b.address.gov.sa/api`\n> **Full production endpoint:** `https://b2b.address.gov.sa/api/api/v1/search/autocomplete`\n\n### Production example\n\nReplace `YOUR_API_KEY` with your own API key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://b2b.address.gov.sa/api/api/v1/search/autocomplete?q=Riyadh&latitude=24.716786957077304&longitude=46.73486649780409&limit=10' \\\n--header 'x-apikey: YOUR_API_KEY'\n```\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/search/autocomplete`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
         "operationId": "autocomplete_search_api_v1_search_autocomplete_get",
         "parameters": [
           {
@@ -230,7 +231,7 @@
       "get": {
         "tags": ["Search"],
         "summary": "[v1.0] Get Place Types",
-        "description": "V1 endpoint - Retrieve POI categories (static reference).\nReturns the same PLACE_CATEGORIES as old v1 API.",
+        "description": "V1 endpoint - Retrieve POI categories (static reference).\nReturns the same PLACE_CATEGORIES as old v1 API.\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/search/place_types`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/search/place_types' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
         "operationId": "get_place_types_api_v1_search_place_types_get",
         "responses": {
           "200": {
@@ -257,7 +258,7 @@
       "get": {
         "tags": ["Search"],
         "summary": "[v1.0] Get Place by ID",
-        "description": "V1 endpoint - Get POI by ID.\nReturns v1 format response.",
+        "description": "V1 endpoint - Get POI by ID.\nReturns v1 format response.\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/search/place/{place_id}`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/search/place/{place_id}' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
         "operationId": "get_place_by_id_api_v1_search_place__place_id__get",
         "parameters": [
           {
@@ -303,7 +304,7 @@
       "get": {
         "tags": ["Reverse Geocode"],
         "summary": "[v1.0] Reverse Geocode",
-        "description": "V1 reverse geocode endpoint - backward compatible. Converts coordinates to addresses using the v2.0 service.\n\n> **PRODUCTION USE -- You MUST use this v1 endpoint for production.**\n>\n> If you intend to use reverse geocode in a **production** environment, you **must** call this v1 endpoint against the production base URL below. **The v2.0 reverse geocode endpoint is NOT offered for production use.**\n>\n> **Production base URL:** `https://b2b.address.gov.sa/api`\n> **Full production endpoint:** `https://b2b.address.gov.sa/api/api/v1/reverse/geocode`\n\n### Production example\n\nReplace `YOUR_API_KEY` with your own API key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://b2b.address.gov.sa/api/api/v1/reverse/geocode?latitude=24.716786957077304&longitude=46.73486649780409&na=true&radius_m=200' \\\n--header 'x-apikey: YOUR_API_KEY'\n```",
+        "description": "V1 reverse geocode endpoint - backward compatible. Converts coordinates to addresses using the v2.0 service.\n\n> **PRODUCTION USE -- You MUST use this v1 endpoint for production.**\n>\n> If you intend to use reverse geocode in a **production** environment, you **must** call this v1 endpoint against the production base URL below. **The v2.0 reverse geocode endpoint is NOT offered for production use.**\n>\n> **Production base URL:** `https://b2b.address.gov.sa/api`\n> **Full production endpoint:** `https://b2b.address.gov.sa/api/api/v1/reverse/geocode`\n\n### Production example\n\nReplace `YOUR_API_KEY` with your own API key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://b2b.address.gov.sa/api/api/v1/reverse/geocode?latitude=24.716786957077304&longitude=46.73486649780409&na=true&radius_m=200' \\\n--header 'x-apikey: YOUR_API_KEY'\n```\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/reverse/geocode`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/reverse/geocode?latitude=24.7136&longitude=46.6753&na=true&radius_m=200' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
         "operationId": "reverse_geocode_api_v1_reverse_geocode_get",
         "parameters": [
           {
@@ -391,7 +392,7 @@
       "get": {
         "tags": ["Route"],
         "summary": "[v1.0] Route API",
-        "description": "Find the fastest route between coordinates using Route API.",
+        "description": "Find the fastest route between coordinates using Route API.\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/route/{version}/{profile}/{coordinates}`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/route/v1/driving/46.6753,24.7136;46.7386,24.7743?steps=false&overview=simplified' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
         "operationId": "route_api_v1_route__version___profile___coordinates__get",
         "parameters": [
           {
@@ -702,7 +703,7 @@
       "get": {
         "tags": ["Route"],
         "summary": "[v1.0] Trip API",
-        "description": "Solve the Traveling Salesman Problem (TSP) for input coordinates.",
+        "description": "Solve the Traveling Salesman Problem (TSP) for input coordinates.\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/trip/{version}/{profile}/{coordinates}`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/trip/v1/driving/46.6753,24.7136;46.7386,24.7743?source=first&roundtrip=false' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
         "operationId": "trip_api_v1_trip__version___profile___coordinates__get",
         "parameters": [
           {
@@ -1011,7 +1012,7 @@
       "get": {
         "tags": ["Search"],
         "summary": "[v2.0] Autocomplete Search",
-        "description": "Autocomplete search endpoint.\n\n> **NOT AVAILABLE FOR PRODUCTION.**\n>\n> The v2.0 autocomplete search endpoint is **not** offered for production use. We only offer the **v1** autocomplete search endpoint for production. For any production environment, you **must** use the **[v1.0] Autocomplete Search** endpoint (see above) with the production base URL `https://b2b.address.gov.sa/api`.",
+        "description": "Autocomplete search endpoint.\n\n> **NOT AVAILABLE FOR PRODUCTION.**\n>\n> The v2.0 autocomplete search endpoint is **not** offered for production use. We only offer the **v1** autocomplete search endpoint for production. For any production environment, you **must** use the **[v1.0] Autocomplete Search** endpoint (see above) with the production base URL `https://b2b.address.gov.sa/api`. The Azure gateway (`https://apina.address.gov.sa/b2b`) also offers only the v1 endpoints.",
         "operationId": "autocomplete_search_api_v2_0_search_autocomplete_get",
         "parameters": [
           {
@@ -1402,7 +1403,7 @@
       "get": {
         "tags": ["Reverse Geocode"],
         "summary": "[v2.0] Reverse Geocode",
-        "description": "Reverse geocoding endpoint - find POI at coordinates.\n\n> **NOT AVAILABLE FOR PRODUCTION.**\n>\n> The v2.0 reverse geocode endpoint is **not** offered for production use. We only offer the **v1** reverse geocode endpoint for production. For any production environment, you **must** use the **[v1.0] Reverse Geocode** endpoint (see above) with the production base URL `https://b2b.address.gov.sa/api`.",
+        "description": "Reverse geocoding endpoint - find POI at coordinates.\n\n> **NOT AVAILABLE FOR PRODUCTION.**\n>\n> The v2.0 reverse geocode endpoint is **not** offered for production use. We only offer the **v1** reverse geocode endpoint for production. For any production environment, you **must** use the **[v1.0] Reverse Geocode** endpoint (see above) with the production base URL `https://b2b.address.gov.sa/api`. The Azure gateway (`https://apina.address.gov.sa/b2b`) also offers only the v1 endpoints.",
         "operationId": "reverse_search_api_v2_0_reverse_geocode_get",
         "parameters": [
           {

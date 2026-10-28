@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import Layout from "@theme/Layout";
 import MapComponent from "../../components/MapComponent";
+import ApiKeyGuide from "../../components/ApiKeyGuide";
 import CopyButton from "../../components/CopyButton";
 import styles from "../../components/MapComponent/styles.module.css";
 import clsx from "clsx";
 import Link from "@docusaurus/Link";
-import CodeBlock from "@theme/CodeBlock";
 
 const mapStyles = [
   {
@@ -94,22 +94,12 @@ export default function Maps() {
                 Click on a style to view it in the map below.
               </p>
 
-              <div className='alert alert--success' role='alert'>
-                <p>
-                  <strong>Going to production?</strong> Use the production base
-                  URL <code>https://b2b.address.gov.sa/</code> and authenticate
-                  every request with an <code>x-apikey</code> header.
-                </p>
-                <CodeBlock language='bash' title='Production request example'>
-                  {`curl --location 'https://b2b.address.gov.sa/styles/spl_satellite/style.json' \\
---header 'x-apikey: Your API Key'`}
-                </CodeBlock>
-              </div>
+              <ApiKeyGuide />
 
               <div className='alert alert--primary' role='alert'>
                 <p>
                   <strong>Looking for integration guides?</strong> Check out our{" "}
-                  <Link to='/docs/maps/using-spl-maps'>
+                  <Link to='/docs/docs/maps/using-spl-maps'>
                     developer documentation
                   </Link>{" "}
                   to learn how to use these map styles in your applications.

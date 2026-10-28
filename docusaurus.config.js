@@ -114,6 +114,11 @@ const config = {
             items: [
               {
                 type: "doc",
+                docId: "maps/api-keys", // api-keys.mdx
+                label: "API Keys & Authentication",
+              },
+              {
+                type: "doc",
                 docId: "maps/using-spl-maps", // using-spl-maps.md
                 label: "Using SPL Maps",
               },

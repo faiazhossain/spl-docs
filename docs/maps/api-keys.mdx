@@ -1,0 +1,122 @@
+---
+sidebar_label: "API Keys & Authentication"
+sidebar_position: 0
+---
+
+<head>
+  <title>SPL Maps API Keys &amp; Authentication</title>
+</head>
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# API Keys & Authentication
+
+Every request to the SPL Maps API must be authenticated with an API key sent
+in the request header. Keys are issued through one of two gateways:
+
+- **B2B (Apigee)** - keys issued through the SPL B2B gateway
+- **Azure** - keys issued through Azure
+
+Use the key that matches the gateway it was issued for. A B2B key only works
+against the B2B base URL, and an Azure key only works against the Azure base
+URL. If you have both, use the one issued by the gateway you are calling.
+
+The development style URLs on `https://na-maps.vng-solutions.com` currently
+load without a key and are meant for evaluation only.
+
+<Tabs
+  groupId="api-key-provider"
+  defaultValue="b2b"
+  values={[
+    { label: "B2B (Apigee)", value: "b2b" },
+    { label: "Azure", value: "azure" },
+  ]}
+>
+
+<TabItem value="b2b" label="B2B (Apigee)">
+
+Use this option if your API key was issued through the SPL B2B (Apigee)
+gateway.
+
+| Setting     | Value                        |
+| ----------- | ---------------------------- |
+| Base URL    | `https://b2b.address.gov.sa` |
+| Auth header | `x-apikey`                   |
+
+Every request against this base URL must carry your key in the `x-apikey`
+header:
+
+```bash
+curl --location 'https://b2b.address.gov.sa/styles/spl_satellite/style.json' \
+--header 'x-apikey: YOUR_B2B_API_KEY'
+```
+
+The same header applies to the GeoSearch endpoints documented in the
+[API reference](/docs/api), for example:
+
+```bash
+curl --location 'https://b2b.address.gov.sa/api/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \
+--header 'x-apikey: YOUR_B2B_API_KEY'
+```
+
+</TabItem>
+
+<TabItem value="azure" label="Azure">
+
+Use this option if your API key was issued through Azure. Azure keys must be
+sent to the Azure gateway - do not send an Azure key to the B2B gateway.
+
+| Setting     | Value                                  |
+| ----------- | -------------------------------------- |
+| Base URL    | `https://apina.address.gov.sa/b2b`     |
+| Auth header | `Ocp-Apim-Subscription-Key`            |
+
+Send your Azure key in the `Ocp-Apim-Subscription-Key` header on every
+request. Map styles:
+
+```bash
+curl --location 'https://apina.address.gov.sa/b2b/styles/spl_satellite/style.json' \
+--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'
+```
+
+GeoSearch (v1) endpoints use the same header:
+
+```bash
+curl --location 'https://apina.address.gov.sa/b2b/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \
+--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'
+```
+
+Note the different path layout: on Azure, GeoSearch endpoints live under
+`/b2b/api/v1/...`, while on the B2B gateway they live under `/api/api/v1/...`.
+
+**Current notes on the Azure gateway:**
+
+- Only the **v1** GeoSearch endpoints are available. The `v2.0` endpoints are
+  not offered.
+- The style JSON and sprites load with the Azure key. Full map rendering is
+  still being completed on the gateway (tile sources currently expect an
+  additional B2B `x-apikey`, the glyph font endpoint is not published yet,
+  and CORS headers for browser access are not sent yet).
+
+</TabItem>
+
+</Tabs>
+
+## Best Practices
+
+1. **Keep keys secret**: never hard-code keys in client-side code (browsers
+   and mobile apps can be inspected) and never commit them to source control.
+   Route requests through your backend, or load the key from an environment
+   variable.
+2. **Send the key on every request**: authentication is per request - there
+   is no session or login step.
+3. **Use the matching gateway**: B2B keys for the B2B base URL, Azure keys
+   for the Azure base URL.
+4. **Rotate keys carefully**: if a key may have been exposed, contact the SPL
+   team to have it revoked and reissued.
+
+## Next Steps
+
+- Explore the available styles in the [developer guide](/docs/docs/maps/using-spl-maps)
+- Browse the endpoints in the [API reference](/docs/api)

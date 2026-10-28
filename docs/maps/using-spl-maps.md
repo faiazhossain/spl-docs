@@ -7,9 +7,51 @@ sidebar_position: 1
   <title>SPL Maps in JavaScript</title>
 </head>
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Using SPL Maps in JavaScript Projects
 
 This guide explains how to integrate VNG Solutions SPL maps into your JavaScript applications.
+
+## Authentication
+
+Every request to the SPL Maps API must be authenticated with an API key. Keys are issued through two gateways - pick the tab that matches where your key came from. See [API Keys & Authentication](/docs/docs/maps/api-keys) for the full details.
+
+<Tabs
+  groupId="api-key-provider"
+  defaultValue="b2b"
+  values={[
+    { label: "B2B (Apigee)", value: "b2b" },
+    { label: "Azure", value: "azure" },
+  ]}
+>
+
+<TabItem value="b2b" label="B2B (Apigee)">
+
+Send your key in the `x-apikey` header against the B2B base URL:
+
+```bash
+curl --location 'https://b2b.address.gov.sa/styles/spl_bgmaps/style.json' \
+--header 'x-apikey: YOUR_B2B_API_KEY'
+```
+
+</TabItem>
+
+<TabItem value="azure" label="Azure">
+
+If your key was issued through Azure, send it in the `Ocp-Apim-Subscription-Key` header against the Azure gateway:
+
+```bash
+curl --location 'https://apina.address.gov.sa/b2b/styles/spl_bgmaps/style.json' \
+--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'
+```
+
+The Azure gateway serves the v1 GeoSearch endpoints and map styles. See [API Keys & Authentication](/docs/docs/maps/api-keys) for notes on full map rendering support.
+
+</TabItem>
+
+</Tabs>
 
 ## Installation
 
@@ -238,7 +280,7 @@ For detailed instructions on implementing RTL support, see our [Arabic Text Supp
 
 ## Additional Resources
 
-- [Arabic Text Support (RTL Plugin)](/docs/maps/rtl-text-support)
+- [Arabic Text Support (RTL Plugin)](/docs/docs/maps/rtl-text-support)
 - [MapLibre GL JS Documentation](https://maplibre.org/maplibre-gl-js/docs/)
 - [MapLibre Examples](https://maplibre.org/maplibre-gl-js/docs/examples/)
 

@@ -118,6 +118,7 @@ npm run ios      # Starts app on iOS simulator (requires Xcode)
 **Solutions:**
 
 - ✅ Check if you added your API key correctly in `utils/mapUtils.ts`
+- ✅ Make sure the key matches your gateway - B2B (Apigee) keys go to the B2B base URL, Azure keys to the Azure gateway (see [API Keys & Authentication](/docs/docs/maps/api-keys))
 - ✅ Make sure you're connected to internet
 - ✅ Check browser console for error messages
 
