@@ -1,87 +1,79 @@
-# Add Maps as layers in ArcGIS and QGIS with WMTS
+---
+sidebar_label: "ArcGIS & QGIS Integration"
+sidebar_position: 4
+---
 
-This tutorial will guide you through adding Maps as Web Map Tile Service (WMTS) layers in ArcMap, and QGIS. Maps provides two WMTS services that you can use as base maps or overlay layers in your GIS applications.
+<head>
+  <title>Add SPL Maps to ArcGIS and QGIS with WMTS</title>
+</head>
 
-## Available WMTS Services
+# Add SPL Maps to ArcGIS and QGIS with WMTS
 
-Maps provides the following WMTS services:
+SPL Maps provides Web Map Tile Service (WMTS) endpoints for two styles. You can add them as base maps in a GIS application.
 
-- **Background Maps**: `https://na-maps.vng-solutions.com/styles/spl_bgmaps/wmts.xml`
-- **Satellite Maps**: `https://na-maps.vng-solutions.com/styles/spl_satellite/wmts.xml`
+| Service | WMTS endpoint |
+| --- | --- |
+| **SPL Light Maps** | `{{gatewayBase}}/styles/spl_bgmaps/wmts.xml` |
+| **SPL Satellite** | `{{gatewayBase}}/styles/spl_satellite/wmts.xml` |
 
-## Adding Maps to ArcMap
+## Authentication
 
-ArcMap can read WMTS protocol, which is what you'll use to add your Maps styles. You will use the WMTS endpoints provided by Maps to add them to your ArcMap project.
+The endpoints are served by the SPL API gateway, and every request needs your API key in the `{{gatewayKeyHeader}}` header. This also applies to every single map tile. The gateway does not accept the key in the URL, so the GIS application has to send the header itself.
 
-### Available WMTS Endpoints
+| Application | Can it send the header? |
+| --- | --- |
+| **QGIS 3.44 or newer** | Yes, with an authentication configuration of the type **API Header**. See [Add SPL Maps to QGIS](#add-spl-maps-to-qgis). |
+| **QGIS older than 3.44** | No. Use QGIS 3.44 or newer. |
+| **ArcGIS Pro and ArcMap** | No. Neither has a setting to send a custom header with a WMTS connection. See [ArcGIS](#arcgis). |
 
-Maps provides the following WMTS endpoints that are ready to use in ArcMap:
+## Add SPL Maps to QGIS
 
-- **Background Maps**: `https://na-maps.vng-solutions.com/styles/spl_bgmaps/wmts.xml`
-- **Satellite Maps**: `https://na-maps.vng-solutions.com/styles/spl_satellite/wmts.xml`
+The steps were written for QGIS 3.44.
 
-### Add your Maps in ArcMap
+### Step 1: Store the key in an authentication configuration
 
-To get started in ArcMap:
+The key is stored encrypted in the QGIS authentication database, so it is not written into the project file.
 
-1. **Open the Add Data dialog**: Click the **Add Data** button in the toolbar to open the Add Data dialog box.
+1. Open **Layer** › **Add Layer** › **Add WMS/WMTS Layer...** and make sure the **Layers** tab is selected.
+2. Click **New** to create a connection.
+3. Under **Authentication**, click the **+** button next to **Choose or create an authentication configuration**. A dialog for a new configuration opens.
+4. Fill in the configuration:
+   - **Name**: `SPL Map key`
+   - **Method**: **API Header**
+   - **Header Name**: `Ocp-Apim-Subscription-Key`
+   - **Header Value**: your API key
+5. Click **Save**. If QGIS asks for a master password, it is the password that protects your authentication database. You choose it the first time you store a credential.
 
-2. **Access GIS Servers**: At the top of the dialog box, click the arrow next to **Look in:** and select **GIS Servers**.
+### Step 2: Create the WMTS connection
 
-3. **Add WMTS Server**: Double-click **Add WMTS Server** to open the Add WMTS Server dialog box.
+1. Back in the connection dialog, fill in:
+   - **Name**: `SPL Light Maps` or `SPL Satellite`
+   - **URL**: the WMTS endpoint of the service from the table above
+   - **Authentication**: select `SPL Map key`
+2. Click **OK**.
 
-4. **Enter WMTS URL**: In the **URL** field at the top, paste one of the Maps WMTS endpoints:
+### Step 3: Add the layer
 
-   - For background maps: `https://na-maps.vng-solutions.com/styles/spl_bgmaps/wmts.xml`
-   - For satellite maps: `https://na-maps.vng-solutions.com/styles/spl_satellite/wmts.xml`
+1. Select the new connection and click **Connect**. The layers of the service are listed.
+2. Select the layer and click **Add**. The map appears in your project.
 
-5. **Load the layers**: In the **Server Layers** section, click **Get Layers**. When prompted for a username and password, click **Cancel**. You may have to click it several times to dismiss the box.
+Each style is a separate connection. Repeat Step 2 and Step 3 for the second style. The authentication configuration is created only once.
 
-6. **Confirm connection**: When the layers are loaded in the window, click **OK**.
+## ArcGIS
 
-7. **Add the layer**: You should see **Maps on na-maps.vng-solutions.com** in the Add Data dialog box. Double-click it, select the name of your style in the next dialog box, then click **Add**.
+ArcGIS Pro and ArcMap cannot send the `{{gatewayKeyHeader}}` header with a WMTS connection, and the gateway does not accept the key in the URL. A direct WMTS connection from ArcGIS is therefore not possible with an API key.
 
-8. **Verify the layer**: You should see your Maps layer inside your ArcMap project. Note that each style will have to be added individually.
+Two ways around this exist:
 
-### Tips for ArcMap Integration
+- **Ask the SPL team** whether an ArcGIS-compatible endpoint is available for your key.
+- **Use a proxy**: a small service on your network that adds the header to each request. ArcGIS then connects to the proxy instead of the gateway.
 
-- **Multiple Styles**: Each Maps style (background and satellite) needs to be added as a separate connection
-- **Layer Management**: Once added, you can manage layer order, transparency, and other properties through the Table of Contents
-- **Performance**: For better performance, consider the scale range and extent of your project area
-- **Coordinate System**: Ensure your project's coordinate system is compatible with the Maps service
+## Tips
 
-## Adding Maps to QGIS
+- **Performance**: zoom to your area of interest before adding large layers.
+- **Coordinate system**: make sure your project uses a coordinate system that is compatible with the map service. QGIS converts on the fly when it does not.
 
-QGIS can also read map tiles from a WMTS server. You can add Maps layers to your QGIS project using the available WMTS endpoints.
+## Next Steps
 
-### Build a WMTS endpoint
-
-The WMTS endpoint that you will use to add your Maps in QGIS needs to follow this format:
-
-- **Background Maps**: `https://na-maps.vng-solutions.com/styles/spl_bgmaps/wmts.xml`
-- **Satellite Maps**: `https://na-maps.vng-solutions.com/styles/spl_satellite/wmts.xml`
-
-These endpoints are ready to use and don't require any customization.
-
-### Add your Maps in QGIS
-
-To add your Maps to QGIS:
-
-1. In QGIS, click the **Layer** menu, then select **Add Layer**, then click on **Add WMS/WMTS layer...**.
-
-2. Make sure the **Layers** tab is selected in the dialog box. Below the dropdown menu at the top of the box, click **New**.
-
-   ![New Connection Dialog](/img/wmts/newConnection.webp)
-
-3. Give the layer a name (e.g., "Maps Background" or "Maps Satellite") and add one of the WMTS endpoint URLs:
-
-   - For background maps: `https://na-maps.vng-solutions.com/styles/spl_bgmaps/wmts.xml`
-   - For satellite maps: `https://na-maps.vng-solutions.com/styles/spl_satellite/wmts.xml`
-
-   Press **OK**.
-
-   ![Connection Details](/img/wmts/connectionDetails.webp)
-
-4. You should see your Maps layer inside your QGIS project. Note that any style you would like to visualize will have to be added individually.
-
-   ![See Your Map as Layer](/img/wmts/seeYourMapAsLayer.webp)
+- [API Keys & Authentication](/docs/docs/maps/api-keys)
+- [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps)

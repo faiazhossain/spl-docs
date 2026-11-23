@@ -9,7 +9,7 @@ sidebar_position: 6
 
 # MapLibre Resources
 
-SPL Maps styles are rendered with **MapLibre GL JS**, an open-source mapping library. Because your SPL style URL is a standard MapLibre `style.json`, every feature, API method, and example in the official MapLibre documentation works directly with your SPL Maps integration.
+SPL Maps styles are rendered with **MapLibre GL JS**, an open-source mapping library. Because your SPL style is a standard MapLibre `style.json`, every feature, API method, and example in the official MapLibre documentation works with your SPL Maps integration. The only SPL-specific part is how the style and its data are loaded through the gateway; that is covered in [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps).
 
 This page gathers the official MapLibre resources so you can go beyond the basics covered in [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps).
 
@@ -76,7 +76,7 @@ For React Native (iOS and Android), see our [React Native guide](/docs/docs/maps
 
 ## Native Mobile SDKs (Android & iOS)
 
-The references above cover **MapLibre GL JS**, a web library. If you are building a native mobile app (Kotlin or Java on Android, Swift on iOS), use **MapLibre Native**, the same rendering engine packaged as platform SDKs. Your SPL `style.json` works unchanged because the [Style Specification](https://maplibre.org/maplibre-style-spec/) is shared across every MapLibre platform.
+The references above cover **MapLibre GL JS**, a web library. If you are building a native mobile app (Kotlin or Java on Android, Swift on iOS), use **MapLibre Native**, the same rendering engine packaged as platform SDKs. The SPL styles are standard MapLibre styles that this engine can draw. Keep in mind that the gateway needs the API key in a header on every request, and that not every SDK can send one; the [React Native guide](/docs/docs/maps/react-native) shows the approach used there.
 
 | Platform | Resources |
 | --- | --- |

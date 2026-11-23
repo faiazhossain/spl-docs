@@ -3,14 +3,16 @@
   "info": {
     "title": "GeoSearch API",
     "version": "1.0.0",
-    "description": "# Authentication\n\nEvery request must include a valid API key in the request header. Keys are issued through one of two gateways - use the key against the gateway it was issued for:\n\n- **B2B (Apigee):** send `x-apikey: YOUR_B2B_API_KEY` against `https://b2b.address.gov.sa`.\n- **Azure:** if your key was issued through Azure, send `Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY` against `https://apina.address.gov.sa/b2b`. Only the v1 endpoints are available on Azure.\n\nKeep API keys out of client-side code and never commit them to source control."
+    "description": "> **For testing and evaluation only.** This documentation and its endpoints are intended for testing and evaluation purposes only, not for production integration.\n\n# Authentication\n\nEvery request must carry your API key in the `{{gatewayKeyHeader}}` request header. The key goes in the header only: the gateway does not accept it as a URL parameter.\n\n```bash\ncurl --location '{{gatewayBase}}/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'\n```\n\nKeep API keys out of client-side code and never commit them to source control. Details are in the [API Keys & Authentication](/docs/docs/maps/api-keys) guide.\n\n# Available APIs\n\n| API | Endpoint | What it does |\n| --- | --- | --- |\n| Autocomplete Search | `GET /api/v1/search/autocomplete` | Find places by name. |\n| Get Place Types | `GET /api/v1/search/place_types` | List the place types a result can have. |\n| Get Place by ID | `GET /api/v1/search/place/{place_id}` | Look up one place by its ID. |\n| Reverse Geocode | `GET /api/v1/reverse/geocode` | Find the address of a location. |\n| Route | `GET /api/v1/route/{version}/{profile}/{coordinates}` | Fastest route between coordinates. |\n| Trip | `GET /api/v1/trip/{version}/{profile}/{coordinates}` | Fastest order for a list of stops. |\n\nThe map styles are described in the [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps) guide.\n\nThe `v2.0` endpoints are not available on the gateway: it answers `404 Resource not found` for them.\n\n# Errors\n\nThe gateway always answers with a JSON body that has a `statusCode` and a `message`. Read the message: it says what is wrong.\n\n| HTTP | Meaning |\n| --- | --- |\n| `401` | The key is missing, or it is not valid. |\n| `403` | The key is valid, but its call volume quota is used up. The message says when it is replenished. |\n| `404` | Nothing is served at this address. Check the base URL and the path. |\n| `422` | A parameter is missing or out of range. The `detail` list says which one. |\n"
   },
   "paths": {
     "/api/v1/search/autocomplete": {
       "get": {
-        "tags": ["Search"],
-        "summary": "[v1.0] Autocomplete Search",
-        "description": "V1 autocomplete search - backward compatible endpoint. Internally uses the v2.0 service with field mapping.\n\n> **PRODUCTION USE -- You MUST use this v1 endpoint for production.**\n>\n> If you intend to use autocomplete search in a **production** environment, you **must** call this v1 endpoint against the production base URL below. **The v2.0 autocomplete search endpoint is NOT offered for production use.**\n>\n> **Production base URL:** `https://b2b.address.gov.sa/api`\n> **Full production endpoint:** `https://b2b.address.gov.sa/api/api/v1/search/autocomplete`\n\n### Production example\n\nReplace `YOUR_API_KEY` with your own API key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://b2b.address.gov.sa/api/api/v1/search/autocomplete?q=Riyadh&latitude=24.716786957077304&longitude=46.73486649780409&limit=10' \\\n--header 'x-apikey: YOUR_API_KEY'\n```\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/search/autocomplete`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Autocomplete Search",
+        "description": "Returns the places whose name matches the search text.\n\nSend a position with `latitude` and `longitude` to rank the nearest matches first. `radius_m` limits how far away a match may be.\n\nEach result carries the name and address in English and Arabic, the place type and the location.",
         "operationId": "autocomplete_search_api_v1_search_autocomplete_get",
         "parameters": [
           {
@@ -209,6 +211,60 @@
               }
             }
           },
+          "401": {
+            "description": "The key is missing, or it is not valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "examples": {
+                  "missing": {
+                    "summary": "No key was sent",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to missing subscription key. Make sure to include subscription key when making requests to an API."
+                    }
+                  },
+                  "invalid": {
+                    "summary": "The key is not valid",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to invalid subscription key. Make sure to provide a valid key for an active subscription."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The key is valid, but its call volume quota is used up. The message says when it is replenished.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Out of call volume quota. Quota will be replenished in 10:12:20."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nothing is served at this address: check the base URL and the path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Resource not found"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -224,14 +280,22 @@
           {
             "ApiKeyAuth": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "source": "curl --location '{{gatewayBase}}/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
+          }
         ]
       }
     },
     "/api/v1/search/place_types": {
       "get": {
-        "tags": ["Search"],
-        "summary": "[v1.0] Get Place Types",
-        "description": "V1 endpoint - Retrieve POI categories (static reference).\nReturns the same PLACE_CATEGORIES as old v1 API.\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/search/place_types`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/search/place_types' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get Place Types",
+        "description": "Returns the place types that a result can have in its `type` field.",
         "operationId": "get_place_types_api_v1_search_place_types_get",
         "responses": {
           "200": {
@@ -245,20 +309,82 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "The key is missing, or it is not valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "examples": {
+                  "missing": {
+                    "summary": "No key was sent",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to missing subscription key. Make sure to include subscription key when making requests to an API."
+                    }
+                  },
+                  "invalid": {
+                    "summary": "The key is not valid",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to invalid subscription key. Make sure to provide a valid key for an active subscription."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The key is valid, but its call volume quota is used up. The message says when it is replenished.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Out of call volume quota. Quota will be replenished in 10:12:20."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nothing is served at this address: check the base URL and the path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Resource not found"
+                }
+              }
+            }
           }
         },
         "security": [
           {
             "ApiKeyAuth": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "source": "curl --location '{{gatewayBase}}/api/v1/search/place_types' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
+          }
         ]
       }
     },
     "/api/v1/search/place/{place_id}": {
       "get": {
-        "tags": ["Search"],
-        "summary": "[v1.0] Get Place by ID",
-        "description": "V1 endpoint - Get POI by ID.\nReturns v1 format response.\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/search/place/{place_id}`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/search/place/{place_id}' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get Place by ID",
+        "description": "Returns the place with the given `id`, the same document that a search returns in `results`.",
         "operationId": "get_place_by_id_api_v1_search_place__place_id__get",
         "parameters": [
           {
@@ -282,6 +408,60 @@
               }
             }
           },
+          "401": {
+            "description": "The key is missing, or it is not valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "examples": {
+                  "missing": {
+                    "summary": "No key was sent",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to missing subscription key. Make sure to include subscription key when making requests to an API."
+                    }
+                  },
+                  "invalid": {
+                    "summary": "The key is not valid",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to invalid subscription key. Make sure to provide a valid key for an active subscription."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The key is valid, but its call volume quota is used up. The message says when it is replenished.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Out of call volume quota. Quota will be replenished in 10:12:20."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nothing is served at this address: check the base URL and the path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Resource not found"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -297,14 +477,22 @@
           {
             "ApiKeyAuth": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "source": "curl --location '{{gatewayBase}}/api/v1/search/place/{place_id}' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
+          }
         ]
       }
     },
     "/api/v1/reverse/geocode": {
       "get": {
-        "tags": ["Reverse Geocode"],
-        "summary": "[v1.0] Reverse Geocode",
-        "description": "V1 reverse geocode endpoint - backward compatible. Converts coordinates to addresses using the v2.0 service.\n\n> **PRODUCTION USE -- You MUST use this v1 endpoint for production.**\n>\n> If you intend to use reverse geocode in a **production** environment, you **must** call this v1 endpoint against the production base URL below. **The v2.0 reverse geocode endpoint is NOT offered for production use.**\n>\n> **Production base URL:** `https://b2b.address.gov.sa/api`\n> **Full production endpoint:** `https://b2b.address.gov.sa/api/api/v1/reverse/geocode`\n\n### Production example\n\nReplace `YOUR_API_KEY` with your own API key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://b2b.address.gov.sa/api/api/v1/reverse/geocode?latitude=24.716786957077304&longitude=46.73486649780409&na=true&radius_m=200' \\\n--header 'x-apikey: YOUR_API_KEY'\n```\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/reverse/geocode`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/reverse/geocode?latitude=24.7136&longitude=46.6753&na=true&radius_m=200' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
+        "tags": [
+          "Reverse Geocode"
+        ],
+        "summary": "Reverse Geocode",
+        "description": "Returns the address of a location.\n\n`latitude` and `longitude` are in decimal degrees (WGS84). `radius_m` is how far the search looks around the point. Set `na=true` to return results from the national address only.",
         "operationId": "reverse_geocode_api_v1_reverse_geocode_get",
         "parameters": [
           {
@@ -370,6 +558,60 @@
               }
             }
           },
+          "401": {
+            "description": "The key is missing, or it is not valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "examples": {
+                  "missing": {
+                    "summary": "No key was sent",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to missing subscription key. Make sure to include subscription key when making requests to an API."
+                    }
+                  },
+                  "invalid": {
+                    "summary": "The key is not valid",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to invalid subscription key. Make sure to provide a valid key for an active subscription."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The key is valid, but its call volume quota is used up. The message says when it is replenished.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Out of call volume quota. Quota will be replenished in 10:12:20."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nothing is served at this address: check the base URL and the path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Resource not found"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -385,14 +627,22 @@
           {
             "ApiKeyAuth": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "source": "curl --location '{{gatewayBase}}/api/v1/reverse/geocode?latitude=24.7136&longitude=46.6753&na=true&radius_m=200' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
+          }
         ]
       }
     },
     "/api/v1/route/{version}/{profile}/{coordinates}": {
       "get": {
-        "tags": ["Route"],
-        "summary": "[v1.0] Route API",
-        "description": "Find the fastest route between coordinates using Route API.\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/route/{version}/{profile}/{coordinates}`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/route/v1/driving/46.6753,24.7136;46.7386,24.7743?steps=false&overview=simplified' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
+        "tags": [
+          "Route"
+        ],
+        "summary": "Route API",
+        "description": "Returns the fastest route between coordinates.\n\n- `coordinates` is a list of `lon,lat` pairs separated by `;`.\n- Use `v1` for `version` and `driving` for `profile`.\n- Set `steps=true` for turn-by-turn instructions, and `geometries=geojson` to get the route line in GeoJSON format.",
         "operationId": "route_api_v1_route__version___profile___coordinates__get",
         "parameters": [
           {
@@ -681,6 +931,60 @@
               }
             }
           },
+          "401": {
+            "description": "The key is missing, or it is not valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "examples": {
+                  "missing": {
+                    "summary": "No key was sent",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to missing subscription key. Make sure to include subscription key when making requests to an API."
+                    }
+                  },
+                  "invalid": {
+                    "summary": "The key is not valid",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to invalid subscription key. Make sure to provide a valid key for an active subscription."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The key is valid, but its call volume quota is used up. The message says when it is replenished.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Out of call volume quota. Quota will be replenished in 10:12:20."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nothing is served at this address: check the base URL and the path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Resource not found"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -696,14 +1000,22 @@
           {
             "ApiKeyAuth": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "source": "curl --location '{{gatewayBase}}/api/v1/route/{version}/{profile}/{coordinates}?steps=false&overview=simplified' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
+          }
         ]
       }
     },
     "/api/v1/trip/{version}/{profile}/{coordinates}": {
       "get": {
-        "tags": ["Route"],
-        "summary": "[v1.0] Trip API",
-        "description": "Solve the Traveling Salesman Problem (TSP) for input coordinates.\n\n### Azure gateway\n\nThis endpoint is also available on the Azure gateway with an Azure-issued API key.\n\n> **Azure base URL:** `https://apina.address.gov.sa/b2b`\n>\n> **Full Azure endpoint:** `https://apina.address.gov.sa/b2b/api/v1/trip/{version}/{profile}/{coordinates}`\n\n### Azure example\n\nReplace `YOUR_AZURE_API_KEY` with your Azure-issued key. Do not share or hard-code real keys in client-side code.\n\n```bash\ncurl --location 'https://apina.address.gov.sa/b2b/api/v1/trip/v1/driving/46.6753,24.7136;46.7386,24.7743?source=first&roundtrip=false' \\\n--header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'\n```",
+        "tags": [
+          "Route"
+        ],
+        "summary": "Trip API",
+        "description": "Returns the fastest order for a list of stops, and the route through them.\n\n- `coordinates` uses the same `lon,lat;lon,lat` form as the route API.\n- `roundtrip` (default `true`) returns to the first stop.\n- `source=first` fixes the first coordinate as the start, and `destination=last` fixes the last coordinate as the end.",
         "operationId": "trip_api_v1_trip__version___profile___coordinates__get",
         "parameters": [
           {
@@ -990,6 +1302,60 @@
               }
             }
           },
+          "401": {
+            "description": "The key is missing, or it is not valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "examples": {
+                  "missing": {
+                    "summary": "No key was sent",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to missing subscription key. Make sure to include subscription key when making requests to an API."
+                    }
+                  },
+                  "invalid": {
+                    "summary": "The key is not valid",
+                    "value": {
+                      "statusCode": 401,
+                      "message": "Access denied due to invalid subscription key. Make sure to provide a valid key for an active subscription."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The key is valid, but its call volume quota is used up. The message says when it is replenished.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Out of call volume quota. Quota will be replenished in 10:12:20."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nothing is served at this address: check the base URL and the path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayError"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Resource not found"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1004,1147 +1370,14 @@
         "security": [
           {
             "ApiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v2.0/search/autocomplete": {
-      "get": {
-        "tags": ["Search"],
-        "summary": "[v2.0] Autocomplete Search",
-        "description": "Autocomplete search endpoint.\n\n> **NOT AVAILABLE FOR PRODUCTION.**\n>\n> The v2.0 autocomplete search endpoint is **not** offered for production use. We only offer the **v1** autocomplete search endpoint for production. For any production environment, you **must** use the **[v1.0] Autocomplete Search** endpoint (see above) with the production base URL `https://b2b.address.gov.sa/api`. The Azure gateway (`https://apina.address.gov.sa/b2b`) also offers only the v1 endpoints.",
-        "operationId": "autocomplete_search_api_v2_0_search_autocomplete_get",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 100,
-              "title": "Q"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1,
-              "title": "Page"
-            }
-          },
-          {
-            "name": "latitude",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "number",
-                  "maximum": 90,
-                  "minimum": -90
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Latitude"
-            }
-          },
-          {
-            "name": "longitude",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "number",
-                  "maximum": 180,
-                  "minimum": -180
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Longitude"
-            }
-          },
-          {
-            "name": "radius_m",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "maximum": 10000,
-                  "minimum": 1
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Search radius in meters",
-              "title": "Radius M"
-            },
-            "description": "Search radius in meters"
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "POI category filter",
-              "title": "Category"
-            },
-            "description": "POI category filter"
-          },
-          {
-            "name": "sub_category",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "POI sub-category filter",
-              "title": "Sub Category"
-            },
-            "description": "POI sub-category filter"
-          },
-          {
-            "name": "poi_type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "POI type filter",
-              "title": "Poi Type"
-            },
-            "description": "POI type filter"
-          },
-          {
-            "name": "geometry",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Include geometry in results",
-              "default": false,
-              "title": "Geometry"
-            },
-            "description": "Include geometry in results"
-          },
-          {
-            "name": "city_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "City Id"
-            }
-          },
-          {
-            "name": "district_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "District Id"
-            }
-          },
-          {
-            "name": "governorate_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Governorate Id"
-            }
-          },
-          {
-            "name": "region_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Region Id"
-            }
-          },
-          {
-            "name": "zip_code",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Zip Code"
-            }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
+        "x-codeSamples": [
           {
-            "ApiKeyAuth": []
+            "lang": "cURL",
+            "source": "curl --location '{{gatewayBase}}/api/v1/trip/{version}/{profile}/{coordinates}?source=first&roundtrip=false' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
           }
         ]
-      }
-    },
-    "/api/v2.0/search/place_types": {
-      "get": {
-        "tags": ["Search"],
-        "summary": "[v2.0] Get Place Types",
-        "description": "Retrieve POI categories (static reference).",
-        "operationId": "get_place_types_api_v2_0_search_place_types_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
-                  "title": "Response Get Place Types Api V2 0 Search Place Types Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v2.0/search/place_categories": {
-      "get": {
-        "tags": ["Search"],
-        "summary": "[v2.0] Get Place Categories",
-        "description": "Retrieve all unique category and sub_category combinations from Typesense.\nReturns actual data present in the indexed collection.",
-        "operationId": "get_all_place_categories_api_v2_0_search_place_categories_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
-                  "title": "Response Get All Place Categories Api V2 0 Search Place Categories Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v2.0/search/place/{place_id}": {
-      "get": {
-        "tags": ["Search"],
-        "summary": "[v2.0] Get Place by ID",
-        "operationId": "get_place_by_id_api_v2_0_search_place__place_id__get",
-        "parameters": [
-          {
-            "name": "place_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Place Id"
-            }
-          },
-          {
-            "name": "geometry",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "description": "Include geometry in response",
-              "default": false,
-              "title": "Geometry"
-            },
-            "description": "Include geometry in response"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v2.0/reverse/geocode": {
-      "get": {
-        "tags": ["Reverse Geocode"],
-        "summary": "[v2.0] Reverse Geocode",
-        "description": "Reverse geocoding endpoint - find POI at coordinates.\n\n> **NOT AVAILABLE FOR PRODUCTION.**\n>\n> The v2.0 reverse geocode endpoint is **not** offered for production use. We only offer the **v1** reverse geocode endpoint for production. For any production environment, you **must** use the **[v1.0] Reverse Geocode** endpoint (see above) with the production base URL `https://b2b.address.gov.sa/api`. The Azure gateway (`https://apina.address.gov.sa/b2b`) also offers only the v1 endpoints.",
-        "operationId": "reverse_search_api_v2_0_reverse_geocode_get",
-        "parameters": [
-          {
-            "name": "latitude",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "maximum": 90,
-              "minimum": -90,
-              "title": "Latitude"
-            }
-          },
-          {
-            "name": "longitude",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "maximum": 180,
-              "minimum": -180,
-              "title": "Longitude"
-            }
-          },
-          {
-            "name": "na",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Results from national address only",
-              "default": false,
-              "title": "Na"
-            },
-            "description": "Results from national address only"
-          },
-          {
-            "name": "radius_m",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 10000,
-              "minimum": 1,
-              "description": "Search radius in meters",
-              "default": 200,
-              "title": "Radius M"
-            },
-            "description": "Search radius in meters"
-          },
-          {
-            "name": "geometry",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Include geometry in results",
-              "default": false,
-              "title": "Geometry"
-            },
-            "description": "Include geometry in results"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v2.0/route/{version}/{profile}/{coordinates}": {
-      "get": {
-        "tags": ["Route"],
-        "summary": "[v2.0] Route API",
-        "description": "Find the fastest route between coordinates using Route API.",
-        "operationId": "route_api_v2_0_route__version___profile___coordinates__get",
-        "parameters": [
-          {
-            "name": "version",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Version of the protocol (use `v1` for Route API 5.x)",
-              "title": "Version"
-            },
-            "description": "Version of the protocol (use `v1` for Route API 5.x)"
-          },
-          {
-            "name": "profile",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Mode of transport: driving",
-              "title": "Profile"
-            },
-            "description": "Mode of transport: driving"
-          },
-          {
-            "name": "coordinates",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "List of `lon,lat` pairs separated by `;`",
-              "title": "Coordinates"
-            },
-            "description": "List of `lon,lat` pairs separated by `;`"
-          },
-          {
-            "name": "bearings",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Limits the search to segments with given bearing",
-              "title": "Bearings"
-            },
-            "description": "Limits the search to segments with given bearing"
-          },
-          {
-            "name": "radiuses",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Limits the search to given radius in meters",
-              "title": "Radiuses"
-            },
-            "description": "Limits the search to given radius in meters"
-          },
-          {
-            "name": "generate_hints",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Adds a hint to the response for reuse",
-              "title": "Generate Hints"
-            },
-            "description": "Adds a hint to the response for reuse"
-          },
-          {
-            "name": "hints",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Hint from previous request",
-              "title": "Hints"
-            },
-            "description": "Hint from previous request"
-          },
-          {
-            "name": "approaches",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Keep waypoints on curb side",
-              "title": "Approaches"
-            },
-            "description": "Keep waypoints on curb side"
-          },
-          {
-            "name": "exclude",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Classes to avoid (e.g., toll, ferry)",
-              "title": "Exclude"
-            },
-            "description": "Classes to avoid (e.g., toll, ferry)"
-          },
-          {
-            "name": "alternatives",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Allow alternative routes (`true` or number of routes)",
-              "default": false,
-              "title": "Alternatives"
-            },
-            "description": "Allow alternative routes (`true` or number of routes)"
-          },
-          {
-            "name": "steps",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Return step-by-step route instructions",
-              "default": false,
-              "title": "Steps"
-            },
-            "description": "Return step-by-step route instructions"
-          },
-          {
-            "name": "annotations",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Extra data per coordinate (duration, speed, nodes, etc.)",
-              "default": "false",
-              "title": "Annotations"
-            },
-            "description": "Extra data per coordinate (duration, speed, nodes, etc.)"
-          },
-          {
-            "name": "geometries",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Geometry format: polyline, polyline6, geojson",
-              "default": "polyline",
-              "title": "Geometries"
-            },
-            "description": "Geometry format: polyline, polyline6, geojson"
-          },
-          {
-            "name": "overview",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Overview geometry: simplified, full, or false",
-              "default": "simplified",
-              "title": "Overview"
-            },
-            "description": "Overview geometry: simplified, full, or false"
-          },
-          {
-            "name": "continue_straight",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Force straight routing at waypoints",
-              "default": "default",
-              "title": "Continue Straight"
-            },
-            "description": "Force straight routing at waypoints"
-          },
-          {
-            "name": "waypoints",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Indices treated as waypoints",
-              "title": "Waypoints"
-            },
-            "description": "Indices treated as waypoints"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v2.0/trip/{version}/{profile}/{coordinates}": {
-      "get": {
-        "tags": ["Route"],
-        "summary": "[v2.0] Trip API",
-        "description": "Solve the Traveling Salesman Problem (TSP) for input coordinates.",
-        "operationId": "trip_api_v2_0_trip__version___profile___coordinates__get",
-        "parameters": [
-          {
-            "name": "version",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Version of the protocol (use `v1` for Route API 5.x)",
-              "title": "Version"
-            },
-            "description": "Version of the protocol (use `v1` for Route API 5.x)"
-          },
-          {
-            "name": "profile",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Mode of transport: driving",
-              "title": "Profile"
-            },
-            "description": "Mode of transport: driving"
-          },
-          {
-            "name": "coordinates",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "List of `lon,lat` pairs separated by `;`",
-              "title": "Coordinates"
-            },
-            "description": "List of `lon,lat` pairs separated by `;`"
-          },
-          {
-            "name": "bearings",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Limits the search to segments with given bearing",
-              "title": "Bearings"
-            },
-            "description": "Limits the search to segments with given bearing"
-          },
-          {
-            "name": "radiuses",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Limits the search to given radius in meters",
-              "title": "Radiuses"
-            },
-            "description": "Limits the search to given radius in meters"
-          },
-          {
-            "name": "generate_hints",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Adds a hint to the response for reuse",
-              "title": "Generate Hints"
-            },
-            "description": "Adds a hint to the response for reuse"
-          },
-          {
-            "name": "hints",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Hint from previous request",
-              "title": "Hints"
-            },
-            "description": "Hint from previous request"
-          },
-          {
-            "name": "approaches",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Keep waypoints on curb side",
-              "title": "Approaches"
-            },
-            "description": "Keep waypoints on curb side"
-          },
-          {
-            "name": "exclude",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Classes to avoid (e.g., toll, ferry)",
-              "title": "Exclude"
-            },
-            "description": "Classes to avoid (e.g., toll, ferry)"
-          },
-          {
-            "name": "roundtrip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "If true, trip returns to first location",
-              "default": true,
-              "title": "Roundtrip"
-            },
-            "description": "If true, trip returns to first location"
-          },
-          {
-            "name": "source",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Start point: `any` or `first`",
-              "default": "any",
-              "title": "Source"
-            },
-            "description": "Start point: `any` or `first`"
-          },
-          {
-            "name": "destination",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "End point: `any` or `last`",
-              "default": "any",
-              "title": "Destination"
-            },
-            "description": "End point: `any` or `last`"
-          },
-          {
-            "name": "steps",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Return detailed trip steps",
-              "default": false,
-              "title": "Steps"
-            },
-            "description": "Return detailed trip steps"
-          },
-          {
-            "name": "annotations",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Extra data per coordinate (duration, speed, nodes, etc.)",
-              "default": "false",
-              "title": "Annotations"
-            },
-            "description": "Extra data per coordinate (duration, speed, nodes, etc.)"
-          },
-          {
-            "name": "geometries",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Geometry format: polyline, polyline6, geojson",
-              "default": "polyline",
-              "title": "Geometries"
-            },
-            "description": "Geometry format: polyline, polyline6, geojson"
-          },
-          {
-            "name": "overview",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Overview geometry: simplified, full, or false",
-              "default": "simplified",
-              "title": "Overview"
-            },
-            "description": "Overview geometry: simplified, full, or false"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/health": {
-      "get": {
-        "summary": "Health Check",
-        "description": "Health check endpoint.",
-        "operationId": "health_check_health_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
       }
     }
   },
@@ -2168,7 +1401,9 @@
           }
         },
         "type": "object",
-        "required": ["coordinates"],
+        "required": [
+          "coordinates"
+        ],
         "title": "GeoPoint",
         "description": "GeoJSON Point geometry"
       },
@@ -2196,7 +1431,9 @@
           }
         },
         "type": "object",
-        "required": ["coordinates"],
+        "required": [
+          "coordinates"
+        ],
         "title": "GeoPolygon",
         "description": "GeoJSON Polygon geometry"
       },
@@ -2605,7 +1842,12 @@
           }
         },
         "type": "object",
-        "required": ["id", "poi_id", "name_en", "location"],
+        "required": [
+          "id",
+          "poi_id",
+          "name_en",
+          "location"
+        ],
         "title": "POIResponse",
         "description": "POI document response from Typesense"
       },
@@ -2924,22 +2166,60 @@
           }
         },
         "type": "object",
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError"
+      },
+      "GatewayError": {
+        "type": "object",
+        "title": "GatewayError",
+        "description": "Error body returned by the gateway.",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "description": "HTTP status code."
+          },
+          "message": {
+            "type": "string",
+            "description": "What is wrong, and what to do about it."
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ]
       }
     },
     "securitySchemes": {
       "ApiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "X-API-KEY",
-        "description": "API key authentication for staging"
+        "name": "{{gatewayKeyHeader}}",
+        "description": "Your API key, sent in the `{{gatewayKeyHeader}}` header on every request. The key is not accepted as a URL parameter."
       }
     }
   },
   "servers": [
     {
-      "url": "/spl"
+      "url": "{{gatewayBase}}",
+      "description": "SPL API gateway"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Search",
+      "description": "Find places by name and look up their details."
+    },
+    {
+      "name": "Reverse Geocode",
+      "description": "Find the address of a location."
+    },
+    {
+      "name": "Route",
+      "description": "Routes and optimized trips between coordinates."
     }
   ]
 }

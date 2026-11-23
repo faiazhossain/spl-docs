@@ -6,10 +6,17 @@ WORKDIR /opt/docusaurus
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-# Optional: bake a gateway subscription key into the build so the interactive
-# map on /docs/maps/ can load styles. Omit it and the key stays out of the image.
-ARG SPL_UAT_KEY=""
-ENV SPL_UAT_KEY=$SPL_UAT_KEY
+# Environment settings, see README "Environment settings". Secrets are passed
+# as build arguments because .env.local is not part of the build context. Leave
+# them empty to build without a key.
+ARG SPL_ENVIRONMENT=""
+ARG SPL_GATEWAY_BASE=""
+ARG SPL_GATEWAY_KEY=""
+ARG SPL_PREVIEW_STYLES_BASE=""
+ENV SPL_ENVIRONMENT=$SPL_ENVIRONMENT \
+    SPL_GATEWAY_BASE=$SPL_GATEWAY_BASE \
+    SPL_GATEWAY_KEY=$SPL_GATEWAY_KEY \
+    SPL_PREVIEW_STYLES_BASE=$SPL_PREVIEW_STYLES_BASE
 RUN npm run build
 
 # Stage 2: serve the static output. The site is built for the /docs/ base path,

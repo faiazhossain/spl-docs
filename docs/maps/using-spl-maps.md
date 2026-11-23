@@ -1,293 +1,262 @@
 ---
-sidebar_label: " SPL Maps in JavaScript"
+sidebar_label: "Using SPL Maps in JavaScript"
 sidebar_position: 2
 ---
 
 <head>
-  <title>SPL Maps in JavaScript</title>
+  <title>Using SPL Maps in JavaScript</title>
 </head>
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+# Using SPL Maps in JavaScript
 
-# Using SPL Maps in JavaScript Projects
+This guide shows how to add an SPL map to a web page with [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/). The map is loaded through the SPL API gateway, so every request carries your API key.
 
-This guide explains how to integrate VNG Solutions SPL maps into your JavaScript applications.
+## Before you start
 
-:::tip Want to see the map first?
-The [HTML Map Viewer](/docs/docs/maps/html-map-viewer) is a single file you open in your browser. Enter your base URL and subscription key, and the map loads without any code.
-:::
+You need these settings, all from [API Keys & Authentication](/docs/docs/maps/api-keys):
 
-## Authentication
+| Setting | Value |
+| --- | --- |
+| Gateway base URL | `{{gatewayBase}}` |
+| Header that carries the key | `{{gatewayKeyHeader}}` |
+| Your API key | issued to you by the SPL team |
+| A website the gateway permits | required for a page that runs in a browser, see [Using the key in a browser](#using-the-key-in-a-browser) |
 
-Every request to the SPL Maps API must be authenticated with an API key. Keys are issued through two gateways - pick the tab that matches where your key came from. See [API Keys & Authentication](/docs/docs/maps/api-keys) for the full details.
+## Complete example
 
-<Tabs
-  groupId="api-key-provider"
-  defaultValue="b2b"
-  values={[
-    { label: "B2B (Apigee)", value: "b2b" },
-    { label: "Azure", value: "azure" },
-  ]}
->
+Save this as `index.html` and replace `YOUR_API_KEY` with your key. The page needs an internet connection, because MapLibre GL JS and the map itself are loaded from the network.
 
-<TabItem value="b2b" label="B2B (Apigee)">
+The browser calls the gateway directly, so the page has to be served from a website that the gateway permits. A copy opened from disk, or a page on a website that is not permitted, is blocked by the browser. If you are not sure whether your website is permitted, see [Using the key in a browser](#using-the-key-in-a-browser) below.
 
-Send your key in the `x-apikey` header against the B2B base URL:
-
-```bash
-curl --location 'https://b2b.address.gov.sa/styles/spl_bgmaps/style.json' \
---header 'x-apikey: YOUR_B2B_API_KEY'
-```
-
-</TabItem>
-
-<TabItem value="azure" label="Azure">
-
-If your key was issued through Azure, send it in the `Ocp-Apim-Subscription-Key` header against the Azure gateway:
-
-```bash
-curl --location 'https://apina.address.gov.sa/b2b/styles/spl_bgmaps/style.json' \
---header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'
-```
-
-The Azure gateway serves the v1 GeoSearch endpoints and map styles. See [API Keys & Authentication](/docs/docs/maps/api-keys) for notes on full map rendering support.
-
-</TabItem>
-
-</Tabs>
-
-## Installation
-
-First, install MapLibre GL JS in your project:
-
-```bash
-# Using npm
-npm install maplibre-gl
-
-# Using yarn
-yarn add maplibre-gl
-```
-
-Make sure to include the MapLibre CSS in your HTML or import it in your JS file:
-
-```html
-<link
-  href="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.css"
-  rel="stylesheet"
-/>
-```
-
-Or in JavaScript/TypeScript:
-
-```javascript
-import "maplibre-gl/dist/maplibre-gl.css";
-```
-
-## Available Map Styles
-
-VNG Solutions provides three different map styles, each available in three language variants:
-
-### Language Variants
-
-Each map style is available in three language options:
-
-1. **Bilingual (Default)**: Labels displayed in both English and Arabic
-2. **English Only**: Labels displayed in English only (add `_en` suffix)
-3. **Arabic Only**: Labels displayed in Arabic only (add `_ar` suffix)
-
-### Map Style URLs
-
-1. **SPL Background Maps**: A clean base map with subtle colors
-
-   - Bilingual: `https://na-maps.vng-solutions.com/styles/spl_bgmaps/style.json`
-   - English: `https://na-maps.vng-solutions.com/styles/spl_bgmaps_en/style.json`
-   - Arabic: `https://na-maps.vng-solutions.com/styles/spl_bgmaps_ar/style.json`
-
-2. **SPL Dark**: A dark-themed map for night mode or dark interfaces
-
-   - Bilingual: `https://na-maps.vng-solutions.com/styles/spl_dark/style.json`
-   - English: `https://na-maps.vng-solutions.com/styles/spl_dark_en/style.json`
-   - Arabic: `https://na-maps.vng-solutions.com/styles/spl_dark_ar/style.json`
-
-3. **SPL Satellite**: Satellite imagery
-   - Bilingual: `https://na-maps.vng-solutions.com/styles/spl_satellite/style.json`
-   - English: `https://na-maps.vng-solutions.com/styles/spl_satellite_en/style.json`
-   - Arabic: `https://na-maps.vng-solutions.com/styles/spl_satellite_ar/style.json`
-
-## Basic Map Integration
-
-Here's a simple example of how to add an SPL map to your web application:
-
-```javascript
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-
-// Initialize the map when the page loads
-document.addEventListener("DOMContentLoaded", () => {
-  const map = new maplibregl.Map({
-    container: "map", // container ID
-    style: "https://na-maps.vng-solutions.com/styles/spl_bgmaps/style.json", // style URL
-    center: [46.915, 24.689], // starting position [lng, lat]
-    zoom: 9, // starting zoom
-  });
-
-  // Add navigation controls (zoom buttons, rotation, etc.)
-  map.addControl(new maplibregl.NavigationControl(), "top-right");
-
-  // Add scale control
-  map.addControl(new maplibregl.ScaleControl(), "bottom-right");
-});
-```
-
-Don't forget to add a container element to your HTML:
-
-```html
-<div id="map" style="width: 100%; height: 500px;"></div>
-```
-
-## HTML Implementation Example
-
-For a quick start with HTML, here's a complete example of how to implement SPL Maps in a standalone HTML file:
-
-```html
+```html title="index.html"
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SPL Maps Example</title>
-    <!-- Add MapLibre GL CSS -->
-    <link
-      href="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.css"
-      rel="stylesheet"
-    />
+    <title>SPL Maps example</title>
+    <link href="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css" rel="stylesheet" />
     <style>
-      body {
-        margin: 0;
-        padding: 0;
-      }
-      #map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
-      }
+      html, body { margin: 0; height: 100%; }
+      #map { position: absolute; inset: 0; }
+      #status { position: absolute; top: 10px; left: 10px; z-index: 1; padding: 6px 10px; background: rgba(255, 255, 255, 0.9); font: 13px/1.4 system-ui, sans-serif; }
     </style>
   </head>
   <body>
     <div id="map"></div>
+    <div id="status">Loading map…</div>
 
-    <!-- Add MapLibre GL JS -->
-    <script src="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js"></script>
     <script>
-      // Initialize the map when the page loads
-      document.addEventListener("DOMContentLoaded", () => {
-        const map = new maplibregl.Map({
-          container: "map", // container ID
-          style:
-            "https://na-maps.vng-solutions.com/styles/spl_bgmaps/style.json", // style URL
-          center: [46.915, 24.689], // starting position [lng, lat]
-          zoom: 9, // starting zoom
+      // 1. Your settings: the gateway, the style and your API key.
+      const GATEWAY = "{{gatewayBase}}";
+      const STYLE_ID = "spl_bgmaps"; // spl_bgmaps, spl_dark or spl_satellite, with _en or _ar for one label language
+      const KEY_HEADER = "Ocp-Apim-Subscription-Key";
+      const API_KEY = "YOUR_API_KEY";
+
+      // 2. Gateway requests: authenticated, sent one at a time and retried on 429.
+      const MIN_INTERVAL_MS = 300;
+      const MAX_RETRIES = 5;
+      let lastRequestAt = 0;
+      let queue = Promise.resolve();
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      function enqueue(run) {
+        const result = queue.then(async () => {
+          await sleep(Math.max(0, lastRequestAt + MIN_INTERVAL_MS - Date.now()));
+          lastRequestAt = Date.now();
+          return run();
         });
+        queue = result.then(() => undefined, () => undefined);
+        return result;
+      }
 
-        // Add navigation controls (zoom buttons, rotation, etc.)
+      async function gatewayFetch(url) {
+        for (let attempt = 0; ; attempt += 1) {
+          const response = await enqueue(() => fetch(url, { headers: { [KEY_HEADER]: API_KEY } }));
+          if (response.status !== 429 || attempt >= MAX_RETRIES) return response;
+          const retryAfter = Number(response.headers.get("Retry-After"));
+          await sleep(retryAfter ? retryAfter * 1000 : 500 * 2 ** attempt);
+        }
+      }
+
+      async function gatewayJson(url) {
+        const response = await gatewayFetch(url);
+        const body = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} for ${url}${body && body.message ? `: ${body.message}` : ""}`);
+        }
+        return body;
+      }
+
+      // 3. MapLibre loads tiles, fonts and icons itself. This protocol makes
+      //    those requests use gatewayFetch, so they are authenticated and retried.
+      maplibregl.addProtocol("splretry", async (params) => {
+        // The gateway's own scheme (https:) is used for the real request.
+        const response = await gatewayFetch(params.url.replace("splretry://", `${new URL(GATEWAY).protocol}//`));
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (params.type === "json") return { data: await response.json() };
+        return { data: await response.arrayBuffer() };
+      });
+
+      async function main() {
+        // Arabic and bilingual styles need the RTL text plugin, before any map exists.
+        maplibregl.setRTLTextPlugin(
+          "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js",
+          true
+        );
+
+        // 4. Load the style once, and note every host it refers to that is not the gateway.
+        const style = await gatewayJson(`${GATEWAY}/styles/${STYLE_ID}/style.json`);
+        const gatewayOrigin = new URL(GATEWAY).origin;
+        const referenced = [
+          style.glyphs,
+          ...[style.sprite].flat().map((sprite) => (typeof sprite === "string" ? sprite : sprite && sprite.url)),
+          ...Object.values(style.sources).flatMap((source) => [source.url, ...(source.tiles || [])]),
+        ];
+        const internal = new Set(
+          referenced
+            .filter((url) => typeof url === "string" && /^https?:\/\//.test(url))
+            .map((url) => new URL(url).origin)
+            .filter((origin) => origin !== gatewayOrigin)
+        );
+
+        // 5. Create the map. Requests to the gateway get the key and go through
+        //    the protocol above; requests to other hosts are left untouched.
+        const map = new maplibregl.Map({
+          container: "map",
+          style,
+          center: [46.6753, 24.7136], // Riyadh
+          zoom: 10,
+          transformRequest: (url, resourceType) => {
+            let target = url;
+            for (const origin of internal) {
+              if (url.startsWith(`${origin}/`)) target = GATEWAY + url.slice(origin.length);
+            }
+            if (!target.startsWith(GATEWAY)) return { url: target };
+            const headers = { [KEY_HEADER]: API_KEY };
+            // Icon images are decoded by the browser and cannot use the protocol.
+            if (resourceType === "SpriteImage") return { url: target, headers };
+            return { url: target.replace(/^https?:\/\//, "splretry://"), headers };
+          },
+        });
         map.addControl(new maplibregl.NavigationControl(), "top-right");
+        map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
 
-        // Add scale control
-        map.addControl(new maplibregl.ScaleControl(), "bottom-right");
+        const status = document.getElementById("status");
+        let failed = false;
+        map.on("idle", () => {
+          if (!failed) status.hidden = true;
+        });
+        map.on("error", (event) => {
+          failed = true;
+          status.hidden = false;
+          status.textContent = `A map request failed: ${event.error && event.error.message ? event.error.message : "unknown error"}`;
+        });
+      }
+
+      main().catch((error) => {
+        document.getElementById("status").textContent = error.message;
       });
     </script>
   </body>
 </html>
 ```
 
-This example shows:
+## How it works
 
-- How to include MapLibre GL JS from CDN
-- Basic styling to make the map take up the full viewport
-- Initializing the map with SPL background map style
-- Adding navigation and scale controls
+Loading a map through the gateway takes five steps. They are the same in every framework.
 
-You can save this code as an HTML file and open it directly in a browser to see the map in action.
+1. **Settings.** The gateway base URL, the style ID, the header name and your key. Load the key from an environment variable of your build tool instead of typing it into the page.
 
-## Adding Markers and Popups
+2. **Gateway requests.** One helper sends every request with the key in the header. The gateway rate-limits bursts with `429`, so the helper sends one request at a time with a short gap, and retries a `429` up to five times with a growing delay. It uses the `Retry-After` header when the gateway sends one.
 
-Enhance your maps with markers and popups:
+3. **A protocol for the map's own requests.** MapLibre downloads tiles, label fonts and icons by itself, so those requests cannot go through the helper directly. Registering a protocol named `splretry` lets the map use `gatewayFetch` for them.
+
+4. **Load the style once.** The style is fetched from `{gateway}/styles/{styleId}/style.json`. The style that the gateway returns is not self-contained: its tiles, fonts and icons point at an internal host that is not reachable from the internet. The example collects every host in the style that is not the gateway, so those addresses can be mapped back onto the gateway. Without this step the style loads and the map stays blank.
+
+5. **Create the map.** `transformRequest` sees every URL the map asks for. Addresses on the internal host are rewritten onto the gateway. Requests to the gateway get the key and use the `splretry` protocol; requests to any other host, such as the CDN for MapLibre, are left untouched.
+
+The style object is passed to the map instead of its URL, so the style is requested only once.
+
+## Using the code in a project
+
+The functions `enqueue`, `gatewayFetch`, `gatewayJson` and the protocol are plain JavaScript. Install MapLibre GL JS with your package manager and move them into a module:
+
+```bash
+npm install maplibre-gl
+```
 
 ```javascript
 import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { createSplMap } from "./splGateway"; // the functions from the example
 
-const map = new maplibregl.Map({
-  container: "map",
-  style: "https://na-maps.vng-solutions.com/styles/spl_bgmaps/style.json",
-  center: [46.915, 24.689],
-  zoom: 9,
+createSplMap("map", {
+  gateway: "{{gatewayBase}}",
+  styleId: "spl_bgmaps",
+  keyHeader: "Ocp-Apim-Subscription-Key",
+  apiKey: import.meta.env.VITE_SPL_API_KEY, // example for Vite: set VITE_SPL_API_KEY in your environment
 });
+```
 
-// Add a marker
-const marker = new maplibregl.Marker({
-  color: "#FF0000",
-  draggable: true,
-})
-  .setLngLat([46.915, 24.689])
-  .addTo(map);
+The example above uses Vite's `import.meta.env`. Use whatever your build tool provides to read an environment variable, such as `process.env.REACT_APP_SPL_API_KEY` for Create React App.
 
-// Add a popup
-const popup = new maplibregl.Popup({ closeOnClick: false })
-  .setLngLat([46.915, 24.689])
-  .setHTML("<h3>New York City</h3><p>The city that never sleeps</p>")
-  .addTo(map);
+## Available map styles
 
-// Add a popup to a marker
-const markerWithPopup = new maplibregl.Marker()
-  .setLngLat([46.915, 24.689])
-  .setPopup(new maplibregl.Popup().setHTML("<h3>Empire State Building</h3>"))
+Three style families are available. Each comes in a bilingual version with labels in English and Arabic, and in an English-only (`_en`) and an Arabic-only (`_ar`) version.
+
+| Style | Bilingual | English | Arabic |
+| --- | --- | --- | --- |
+| **SPL Light Maps**: a clean base map for data visualization | `{{gatewayBase}}/styles/spl_bgmaps/style.json` | `{{gatewayBase}}/styles/spl_bgmaps_en/style.json` | `{{gatewayBase}}/styles/spl_bgmaps_ar/style.json` |
+| **SPL Dark**: a dark theme for night mode and dark interfaces | `{{gatewayBase}}/styles/spl_dark/style.json` | `{{gatewayBase}}/styles/spl_dark_en/style.json` | `{{gatewayBase}}/styles/spl_dark_ar/style.json` |
+| **SPL Satellite**: satellite imagery | `{{gatewayBase}}/styles/spl_satellite/style.json` | `{{gatewayBase}}/styles/spl_satellite_en/style.json` | `{{gatewayBase}}/styles/spl_satellite_ar/style.json` |
+
+To switch style, load the other style with `gatewayJson` and pass it to `map.setStyle()`. The internal host is the same for all styles, so the rewriting in `transformRequest` keeps working.
+
+## Adding markers and popups
+
+Markers and popups are added after the map has loaded. In the example, put this code inside `main()` after the map is created:
+
+```javascript
+new maplibregl.Marker({ color: "#FF0000" })
+  .setLngLat([46.6753, 24.7136])
+  .setPopup(new maplibregl.Popup().setHTML("<h3>Riyadh</h3>"))
   .addTo(map);
 ```
 
-## Arabic Text Support
+## Arabic text
 
-When using bilingual or Arabic-only map styles, you need to enable the RTL (Right-to-Left) text plugin for proper Arabic text rendering. Without it, Arabic text will appear reversed and unreadable.
+Bilingual and Arabic-only styles need the RTL text plugin. The example sets it with `maplibregl.setRTLTextPlugin()` before the map is created. Without it, Arabic labels appear reversed. See [Arabic Text Support (RTL Plugin)](/docs/docs/maps/rtl-text-support).
 
-For detailed instructions on implementing RTL support, see our [Arabic Text Support (RTL Plugin) guide](/docs/docs/maps/rtl-text-support).
+## If the map does not load
+
+The message on the page tells you what the gateway answered. The table in [API Keys & Authentication](/docs/docs/maps/api-keys) lists every message with its fix. The three common cases:
+
+| What you see | Cause |
+| --- | --- |
+| `Failed to fetch`, and no status code | The browser blocked the request. The page is not served from a website that the gateway permits, or you have no connection. See [Using the key in a browser](#using-the-key-in-a-browser). |
+| `HTTP 401 ... missing subscription key` or `invalid subscription key` | The key is not sent, or it is not valid. Check the header name and the key. |
+| `HTTP 403 ... Out of call volume quota` | The key is valid, but its call volume quota is used up. The message says when it is replenished. |
+| The style loads and the map stays blank | The addresses inside the style are not rewritten onto the gateway, or the tiles do not get the key. |
+
+## Using the key in a browser
+
+A browser only lets a web page call the gateway when the gateway permits the website the page is on. The permitted websites are configured on the gateway. If your website is not permitted, contact the SPL team and give them its address. An address used for local testing, such as `http://localhost:3000`, has to be permitted as well.
+
+To avoid this, call the gateway from your backend instead. The page then calls your backend on the same website, and your backend adds the key. This also keeps the key out of the page.
 
 ## Best Practices
 
-1. **Handle Map Loading**: Always check if the map has loaded before adding layers or markers.
+1. **Keep the key out of source control**: load it from an environment variable, or call the gateway from your backend when the key must stay secret.
+2. **Load the style once**: request the style when the page starts and reuse the object. Every request counts against the quota of the key.
+3. **Pace the requests and retry a `429`**: many requests at once are answered with `429`.
+4. **Clean up**: when the page or component that shows the map goes away, call `map.remove()`.
 
-   ```javascript
-   map.on("load", () => {
-     // Add layers, markers, etc. here
-   });
-   ```
+## Next Steps
 
-2. **Clean Up Resources**: When using with frameworks like React or Vue, make sure to clean up the map instance when the component is unmounted.
-
-3. **Responsive Design**: Make your map container responsive to different screen sizes:
-
-   ```css
-   .map-container {
-     width: 100%;
-     height: 50vh; /* 50% of viewport height */
-     min-height: 300px;
-   }
-   ```
-
-4. **Error Handling**: Implement error handling for map loading:
-   ```javascript
-   map.on("error", (e) => {
-     console.error("Map error:", e.error);
-     // Display a user-friendly message
-   });
-   ```
-
-## Additional Resources
-
-- [Arabic Text Support (RTL Plugin)](/docs/docs/maps/rtl-text-support)
-- [MapLibre GL JS Documentation](https://maplibre.org/maplibre-gl-js/docs/)
-- [MapLibre Examples](https://maplibre.org/maplibre-gl-js/docs/examples/)
-
-## Need Help?
-
-If you encounter any issues or have questions about using SPL maps, please contact our support team.
+- See the map without writing code: [HTML Map Viewer](/docs/docs/maps/html-map-viewer)
+- Add the map to a mobile app: [React Native](/docs/docs/maps/react-native)
+- Use the map in GIS software: [ArcGIS & QGIS Integration](/docs/docs/maps/arcgis-qgis-integration)
+- Look up the other APIs: [API reference](/docs/api)
+- Learn more about MapLibre: [MapLibre Resources](/docs/docs/maps/maplibre-resources)

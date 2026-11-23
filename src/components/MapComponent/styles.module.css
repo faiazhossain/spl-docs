@@ -165,3 +165,28 @@
 .mapOverlayHeader h4 {
   margin: 0;
 }
+
+/* Status and error messages float above the map while it loads or fails. */
+.mapStatus,
+.mapError {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 2;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+}
+
+.mapStatus {
+  color: var(--ifm-color-emphasis-800);
+}
+
+.mapError {
+  border-left: 4px solid var(--ifm-color-danger);
+  color: var(--ifm-color-danger);
+}

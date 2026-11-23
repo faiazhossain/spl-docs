@@ -9,25 +9,22 @@ sidebar_position: 3
 
 # React Native
 
-A comprehensive React Native (Expo) application demonstrating various map features using **SPL Maps**, Saudi's leading mapping service, integrated with **@maplibre/maplibre-react-native**. This project serves as a complete example for the React Native community.
+A React Native (Expo) application that demonstrates map features with **SPL Maps**, integrated with **@maplibre/maplibre-react-native**. It is a complete example that you can run and use as the starting point of your own app.
 
-## 📦 Version Info
+## Version Info
 
-- **Project Version**: 1.0.0
-- **React Native**: 0.72.6
-- **Expo**: ~49.0.15
-- **@maplibre/maplibre-react-native**: ^9.1.0
-- **expo-location**: ~16.1.0
+The versions are the ones used by the example repository at the time of writing.
 
-## 📚 Documentation
+- **React Native**: 0.79.4
+- **Expo SDK**: ~53.0.12
+- **@maplibre/maplibre-react-native**: ^10.1.6
+- **expo-location**: ~18.1.5
 
-This project includes comprehensive documentation to help you get started and build advanced features.
+## Features
 
-## 📱 Features
+### Core Map Features
 
-### ✨ Core Map Features
-
-- **Simple Map Display**: Basic map rendering with SPL's style.
+- **Simple Map Display**: Basic map rendering with the SPL style.
 - **Current Location**: Real-time user location tracking with permission handling.
 - **Custom Markers**: Interactive, custom-styled markers.
 - **Draggable Markers**: Markers you can drag to your desired place.
@@ -35,162 +32,18 @@ This project includes comprehensive documentation to help you get started and bu
 - **Polygon Shapes**: Create and display polygon areas.
 - **Complex Geometry**: Combine multiple geometric shapes on a single map.
 
-### 🎨 UI/UX
+### UI/UX
 
 - **Drawer Navigation**: Easy access to all map examples.
-- **Loading & Error States**: Smooth user experience during network requests.
-- **Centralized Utilities**: Reusable hooks and functions for clean code.
+- **Loading & Error States**: Feedback while requests run.
+- **Centralized Utilities**: Reusable hooks and functions.
 
-## 🚀 Quick Start (Complete Beginner Guide)
-
-### Prerequisites (Check These First!)
-
-- **Node.js v18+** (Download from [nodejs.org](https://nodejs.org))
-- **Expo CLI**: `npm install -g @expo/cli`
-- **A code editor** (VS Code recommended)
-- **Android Studio** (for Android development) OR **Xcode** (for iOS development, macOS only)
-
-### Step-by-Step Setup for Beginners
-
-#### 1. Clone and Install Dependencies
-
-```bash
-# Clone the repository
-git clone https://github.com/barikoi/spl-react-native-example.git
-cd react-native-map-example
-
-# Install all dependencies
-npm install
-
-# Install iOS dependencies (macOS only)
-cd ios && pod install && cd ..
-```
-
-#### 2. Run the Project
-
-```bash
-# Option 1: Start development server with Expo
-npm start  # Launches Metro bundler - scan the QR code with Expo Go app to run
-
-# Option 2: Run on Android emulator (Recommanded)
-npm run android  # Starts app on connected Android emulator (requires Android Studio)
-
-# Option 3: Run on iOS simulator (macOS only)
-npm run ios      # Starts app on iOS simulator (requires Xcode)
-```
-
-## Development Environment Setup
-
-> **⚠️ Important**: This project uses `@maplibre/maplibre-react-native` which requires specific Expo configuration. Make sure to follow the [MapLibre Expo Setup Guide](https://maplibre.org/maplibre-react-native/docs/setup/expo) to verify your configuration is correct.
-
-#### For Android
-
-1. Install Android Studio
-2. Install Android SDK (minimum SDK 21)
-3. Set up Android environment variables (ANDROID_HOME)
-4. Create an Android Virtual Device (AVD)
-
-#### For iOS (macOS only)
-
-1. Install Xcode from the Mac App Store
-2. Install Xcode Command Line Tools:
-   ```bash
-   xcode-select --install
-   ```
-3. Install CocoaPods:
-   ```bash
-   sudo gem install cocoapods
-   ```
-
-## 🚨 Common Beginner Mistakes & Solutions
-
-### ❌ "Connectivity Issues"
-
-**Solutions:**
-
-- ✅ For testing with Expo Go app, ensure both your computer and mobile device are on the same network
-- ✅ Check if your network allows local device communication (some corporate networks block this)
-- ✅ Try switching between WiFi and mobile data if connection issues persist
-- ✅ Verify your development machine's firewall isn't blocking Expo connections
-
-### ❌ "Map is blank/not loading"
-
-**Solutions:**
-
-- ✅ Check if you added your API key correctly in `utils/mapUtils.ts`
-- ✅ Make sure the key matches your gateway - B2B (Apigee) keys go to the B2B base URL, Azure keys to the Azure gateway (see [API Keys & Authentication](/docs/docs/maps/api-keys))
-- ✅ Make sure you're connected to internet
-- ✅ Check browser console for error messages
-
-### ❌ "App crashes on startup"
-
-**Solutions:**
-
-- ✅ Run `npm install` again
-- ✅ Clear Metro cache: `npm start -- --clear`
-- ✅ Make sure you have Node.js v18+ installed
-- ✅ For iOS: `cd ios && pod install && cd ..`
-
-### ❌ "Location not working"
-
-**Solutions:**
-
-- ✅ Test on a real device (not simulator for best results)
-- ✅ Allow location permissions when prompted
-- ✅ Make sure location services are enabled on your device
-- ✅ Check if GPS is working in other apps
-
-### ❌ "Build errors with MapLibre"
-
-**Solutions:**
-
-- ✅ Follow the [MapLibre Expo Setup Guide](https://maplibre.org/maplibre-react-native/docs/setup/expo)
-- ✅ Ensure your `app.json` has the correct plugin configuration
-- ✅ Run `npx expo install --fix` to fix version conflicts
-
-## 🖼️ Screenshots & Demo
-
-{/* ### Core Features
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
-  <div>
-    <img src="/static/screenshots/simple-map.jpg" width="100%" alt="Basic map display with Barikoi styling">
-    <p style="text-align: center;"><em>Basic map display</em></p>
-  </div>
-  <div>
-    <img src="/static/screenshots/current-location.jpg" width="100%" alt="Real-time location tracking">
-    <p style="text-align: center;"><em>Location tracking</em></p>
-  </div>
-  <div>
-    <img src="/static/screenshots/markar.jpg" width="100%" alt="Interactive custom markers">
-    <p style="text-align: center;"><em>Custom markers</em></p>
-  </div>
-</div>
-
-### Advanced Features
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
-  <div>
-    <img src="/static/screenshots/line.jpg" width="100%" alt="Draw lines between coordinates">
-    <p style="text-align: center;"><em>Draw lines between coordinates</em></p>
-  </div>
-  <div>
-    <img src="/static/screenshots/polygon.jpg" width="100%" alt="Create polygon areas">
-    <p style="text-align: center;"><em>Create polygon areas</em></p>
-  </div>
-  <div>
-    <img src="/static/screenshots/geometry.jpg" width="100%" alt="Multiple geometric shapes">
-    <p style="text-align: center;"><em>Multiple geometric shapes</em></p>
-  </div>
-  <div>
-    <img src="/static/screenshots/advanced-map.jpg" width="100%" alt="Advanced map with multiple features">
-    <p style="text-align: center;"><em>Advanced map with multiple features</em></p>
-  </div>
-</div> */}
+## Screenshots & Demo
 
 ### Core Features
 
 <table>
+  <tbody>
   <tr>
     <td align="center" width="50%">
       <img src="/docs/screenshots/simple-map.png" alt="Basic map display with SPL styling" width="100%" /><br />
@@ -207,11 +60,13 @@ npm run ios      # Starts app on iOS simulator (requires Xcode)
       <em>Custom markers</em>
     </td>
   </tr>
+  </tbody>
 </table>
 
 ### Advanced Features
 
 <table>
+  <tbody>
   <tr>
     <td align="center" width="50%">
       <img src="/docs/screenshots/line.png" alt="Draw lines between coordinates" width="100%" /><br />
@@ -232,14 +87,148 @@ npm run ios      # Starts app on iOS simulator (requires Xcode)
       <em>Advanced map with multiple features</em>
     </td>
   </tr>
+  </tbody>
 </table>
 
-## 🏗️ How It Works (Quick Overview)
+## Quick Start
+
+### Prerequisites
+
+- **Node.js 18 or newer** ([nodejs.org](https://nodejs.org))
+- **Android Studio** with an Android Virtual Device, or a connected Android device
+- **Xcode** for iOS (macOS only)
+- Your SPL API key. If you do not have one yet, contact the SPL team.
+
+### Step 1: Clone and install
+
+```bash
+git clone https://github.com/barikoi/spl-react-native-example.git
+cd spl-react-native-example
+npm install
+```
+
+The repository creates the folder `spl-react-native-example`. There is no `ios` folder to run `pod install` in: the native iOS project is generated when the app is first built.
+
+### Step 2: Build and run the app
+
+`@maplibre/maplibre-react-native` contains native code and **cannot run in Expo Go**. The app has to be built as a development build once. After that, every change to the JavaScript is reloaded by Metro.
+
+```bash
+# Android: builds the app and starts it on a running emulator or a connected device
+npm run android
+
+# iOS (macOS only): builds the app and starts it in the simulator
+npm run ios
+
+# Starts Metro for a development build that is already installed on the device
+npm start
+```
+
+`npm run android` and `npm run ios` are the `expo run:android` and `expo run:ios` scripts of the repository. Without Android Studio or Xcode, a development build can be created in the cloud with `eas build --profile development`.
+
+The `@maplibre/maplibre-react-native` plugin is already listed in `app.json`, so the native library is added to the project when it is built. See the [MapLibre Expo setup guide](https://maplibre.org/maplibre-react-native/docs/setup/expo).
+
+### Step 3: Connect the app to the map
+
+The map is loaded through the SPL API gateway, which requires your API key in the `Ocp-Apim-Subscription-Key` header on every request. MapLibre React Native downloads tiles and fonts with its own native code and has no option to add a header to those requests, so the app cannot talk to the gateway directly. The way around this is a small proxy that adds the key. It also keeps the key out of the app, where anyone could read it.
+
+The proxy forwards every request to the gateway with the key. Save it in the repository as `proxy.mjs`:
+
+```javascript title="proxy.mjs"
+import { createServer } from "node:http";
+
+const GATEWAY = "{{gatewayBase}}";
+const KEY_HEADER = "Ocp-Apim-Subscription-Key";
+const API_KEY = process.env.SPL_API_KEY; // set in your shell, never written into the app
+const PORT = 3001;
+
+createServer(async (request, response) => {
+  const upstream = await fetch(GATEWAY + request.url, { headers: { [KEY_HEADER]: API_KEY } });
+  response.writeHead(upstream.status, {
+    "content-type": upstream.headers.get("content-type") || "application/octet-stream",
+  });
+  response.end(Buffer.from(await upstream.arrayBuffer()));
+}).listen(PORT, () => console.log(`SPL map proxy listening on port ${PORT}`));
+```
+
+Start it with your key:
+
+```bash
+SPL_API_KEY=your_api_key node proxy.mjs      # macOS and Linux
+$env:SPL_API_KEY="your_api_key"; node proxy.mjs   # Windows PowerShell
+```
+
+Then load the style through the proxy in `utils/mapUtils.ts`. The style refers to an internal host for its tiles, fonts and icons, so those addresses are pointed at the proxy as well:
+
+```typescript title="utils/mapUtils.ts"
+import Constants from "expo-constants";
+import { useEffect, useState } from "react";
+
+// The proxy runs on the computer that serves the app. On an Android emulator it
+// is reached as 10.0.2.2.
+const PROXY = `http://${Constants.expoConfig?.hostUri?.split(":")[0] ?? "10.0.2.2"}:3001`;
+const STYLE_ID = "spl_bgmaps";
+
+export async function fetchSplMapStyle(): Promise<any> {
+  const response = await fetch(`${PROXY}/styles/${STYLE_ID}/style.json`);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const style = await response.json();
+
+  // The style points its tiles, fonts and icons at an internal host.
+  // Point every one of those addresses at the proxy instead.
+  const origins = new Set<string>();
+  const collect = (url: unknown) => {
+    if (typeof url === "string" && /^https?:\/\//.test(url)) origins.add(new URL(url).origin);
+  };
+  collect(style.glyphs);
+  collect(style.sprite);
+  Object.values(style.sources ?? {}).forEach((source: any) => {
+    collect(source.url);
+    (source.tiles ?? []).forEach(collect);
+  });
+  const rewrite = (url: string) => {
+    for (const origin of origins) {
+      if (url.startsWith(`${origin}/`)) return PROXY + url.slice(origin.length);
+    }
+    return url;
+  };
+  if (style.glyphs) style.glyphs = rewrite(style.glyphs);
+  for (const source of Object.values<any>(style.sources ?? {})) {
+    if (source.url) source.url = rewrite(source.url);
+    if (source.tiles) source.tiles = source.tiles.map(rewrite);
+  }
+
+  // Remove the sprite property for React Native compatibility.
+  delete style.sprite;
+  return style;
+}
+
+export const useSPLMapStyle = () => {
+  const [styleJson, setStyleJson] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchSplMapStyle()
+      .then(setStyleJson)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load map style"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { styleJson, loading, error };
+};
+```
+
+Start the proxy before the app, then reload the app. The **Simple Map** screen shows Riyadh with the SPL style.
+
+## How It Works
 
 ### Basic Map Setup
 
 ```typescript
-import { Camera, MapView, MarkerView } from "@maplibre/maplibre-react-native";
+import { Camera, MapView } from "@maplibre/maplibre-react-native";
 import { useSPLMapStyle } from "../../utils/mapUtils";
 
 export default function SimpleMapScreen() {
@@ -250,10 +239,7 @@ export default function SimpleMapScreen() {
 
   return (
     <MapView style={styles.map} mapStyle={styleJson}>
-      <Camera
-        centerCoordinate={[46.6773, 24.7136]} // Riyadh center
-        zoomLevel={16}
-      />
+      <Camera centerCoordinate={[46.6753, 24.7136]} zoomLevel={16} />
     </MapView>
   );
 }
@@ -261,8 +247,8 @@ export default function SimpleMapScreen() {
 
 ### Adding Markers
 
-```typescript
-<MarkerView coordinate={[90.364159, 23.823724]}>
+```tsx
+<MarkerView coordinate={[46.6753, 24.7136]}>
   <Image source={require("../assets/icons/spl-marker.webp")} />
 </MarkerView>
 ```
@@ -275,96 +261,81 @@ import * as Location from "expo-location";
 // Request permission
 const { status } = await Location.requestForegroundPermissionsAsync();
 
-// Get current location
+// Get the current location
 const location = await Location.getCurrentPositionAsync({});
 ```
 
-## 🔧 Customization Guide
+## Customization Guide
 
 ### Adding a New Map Feature
 
-1. **Create a new screen file**:
+1. **Create a new screen** in `components/screens/`, for example `YourNewScreen.tsx`:
 
-   ```bash
-   touch components/screens/YourNewScreen.tsx
-   ```
+    ```typescript
+    import { MapView } from "@maplibre/maplibre-react-native";
+    import { useSPLMapStyle } from "../../utils/mapUtils";
 
-2. **Implement the component**:
+    export default function YourNewScreen() {
+      const { styleJson, loading, error } = useSPLMapStyle();
 
-   ```typescript
-   import { MapView, Camera } from "@maplibre/maplibre-react-native";
-   import { useSPLMapStyle } from "../../utils/mapUtils";
+      if (loading) return <ActivityIndicator />;
+      if (error) return <Text>Error: {error}</Text>;
 
-   export default function YourNewScreen() {
-     const { styleJson, loading, error } = useSPLMapStyle();
+      return <MapView mapStyle={styleJson}>{/* Your map features */}</MapView>;
+    }
+    ```
 
-     if (loading) return <ActivityIndicator />;
-     if (error) return <Text>Error: {error}</Text>;
+2. **Add a route**: create `app/your-new-screen.tsx` that renders the screen, and register it in the drawer in `app/_layout.tsx`.
 
-     return (
-       <MapView mapStyle={styleJson}>
-         {/* Your custom map features go here */}
-       </MapView>
-     );
-   }
-   ```
+## Building a Standalone App
 
-3. **Add to navigation**:
-   Create a new file in the `app/` directory and add to `app/_layout.tsx`.
-
-## 🚀 Publishing Your App (Complete Guide)
-
-### Building for Production
+To install the app on devices without a development tool, build it with [Expo Application Services](https://docs.expo.dev/build/introduction/):
 
 ```bash
 # Install EAS CLI if you haven't already
 npm install -g @expo/eas-cli
 
-# Login to your Expo account
+# Log in to your Expo account
 eas login
 
 # Build for Android
-eas build --platform android --profile production
+eas build --platform android --profile preview
 
 # Build for iOS
-eas build --platform ios --profile production
+eas build --platform ios --profile preview
 ```
 
-### For Google Play Store:
+The repository includes an `eas.json` with three profiles: `development` (a development build), `preview` (an installable internal build) and `production`.
 
-1. **Create Google Play Developer account** ($25 one-time fee)
-2. **Build your app**: `eas build --platform android --profile production`
-3. **Download APK/AAB** from Expo dashboard
-4. **Upload to Google Play Console**
-5. **Fill out store listing** (description, screenshots, etc.)
-6. **Submit for review** (usually takes 1-3 days)
+## Troubleshooting
 
-### For Apple App Store:
+### "Map is blank or not loading"
 
-1. **Apple Developer account required** ($99/year)
-2. **Build your app**: `eas build --platform ios --profile production`
-3. **Download IPA** from Expo dashboard
-4. **Use Transporter app** to upload to App Store Connect
-5. **Fill out app information** in App Store Connect
-6. **Submit for Apple review** (usually takes 1-7 days)
+- Is the proxy running, with the key set in `SPL_API_KEY`? The app cannot load the map without it.
+- Does the device reach the proxy? On a real device, the phone and the computer must be on the same network.
+- Has the style loaded without an error? Show the `error` value of `useSPLMapStyle()` on screen.
+- Is the key accepted? A `401` means the key is missing or not valid, and `403 Out of call volume quota` means the quota of the key is used up. See [API Keys & Authentication](/docs/docs/maps/api-keys).
 
-### EAS Build Configuration
+### "App crashes on startup"
 
-This project includes a basic `eas.json` configuration:
+- Run `npm install` again.
+- Clear the Metro cache: `npm start -- --clear`.
+- If you changed a native dependency, rebuild the app with `npm run android` or `npm run ios`.
 
-```json
-{
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "distribution": "internal"
-    },
-    "production": {}
-  }
-}
-```
+### "Location not working"
 
-**Happy Mapping! 🗺️✨**
+- Test on a real device. Simulators do not always provide a location.
+- Allow location permissions when prompted.
+- Make sure location services are enabled on your device.
+
+### "Build errors with MapLibre"
+
+- Follow the [MapLibre Expo setup guide](https://maplibre.org/maplibre-react-native/docs/setup/expo).
+- Make sure `@maplibre/maplibre-react-native` is listed in the `plugins` array of `app.json`.
+- Run `npx expo install --fix` to fix version conflicts.
+
+## Next Steps
+
+- [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps)
+- [API Keys & Authentication](/docs/docs/maps/api-keys)
+- [MapLibre React Native documentation](https://maplibre.org/maplibre-react-native/)

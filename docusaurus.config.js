@@ -1,15 +1,67 @@
 // @ts-check
 // `@type` JSDoc annotations allow editor autocompletion and type checking
 // (when paired with `@ts-check`).
-// There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
+// This runs in Node.js - don't use client-side code here (browser APIs, JSX...).
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { themes as prismThemes } from "prism-react-renderer";
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+import { SITE_DIR, getSplSettings } from "./scripts/lib/env.mjs";
+
+// Which gateway the documentation describes, and how the demo map is drawn.
+// Everything comes from the environment (see README "Environment settings"),
+// so a build can never mix endpoints from different environments.
+const spl = getSplSettings();
+
+// Placeholders that the guides use instead of typing an address by hand. They
+// are replaced when the markdown is read, so every page, code sample and link
+// shows the gateway of the current build.
+const DOC_PLACEHOLDERS = {
+  "{{gatewayBase}}": spl.gateway.base,
+  "{{gatewayKeyHeader}}": spl.gateway.keyHeader,
+};
+
+/** @type {import('@docusaurus/types').MarkdownPreprocessor} */
+function resolvePlaceholders({ filePath, fileContent }) {
+  if (!fileContent.includes("{{")) return fileContent;
+  let content = fileContent;
+  for (const [placeholder, value] of Object.entries(DOC_PLACEHOLDERS)) {
+    content = content.split(placeholder).join(value);
+  }
+  // A misspelled placeholder must fail the build instead of reaching readers.
+  const unknown = /\{\{\s*gateway[A-Za-z]*\s*\}\}/i.exec(content);
+  if (unknown) {
+    throw new Error(
+      `${filePath}: unknown placeholder "${unknown[0]}". Supported: ${Object.keys(DOC_PLACEHOLDERS).join(", ")}.`
+    );
+  }
+  return content;
+}
+
+// The API reference describes the same gateway as the guides. openapi.json
+// uses the {{gatewayBase}} placeholder, resolved here into a file that the
+// redocusaurus theme reads. A remote spec (API_SPEC_URL) is used unchanged.
+function resolveOpenApiSpec() {
+  const source = process.env.API_SPEC_URL;
+  if (source && /^https?:\/\//.test(source)) return source;
+  const specPath = source ? resolve(SITE_DIR, source) : join(SITE_DIR, "openapi.json");
+  if (!existsSync(specPath)) {
+    throw new Error(`OpenAPI spec not found at ${specPath}.`);
+  }
+  const resolved = readFileSync(specPath, "utf8")
+    .split("{{gatewayBase}}")
+    .join(spl.gateway.base)
+    .split("{{gatewayKeyHeader}}")
+    .join(spl.gateway.keyHeader);
+  const outDir = join(SITE_DIR, "node_modules", ".cache", "spl-docs");
+  const outPath = join(outDir, "openapi.resolved.json");
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(outPath, resolved);
+  return outPath;
+}
 
 /** @type {import('@docusaurus/types').Config} */
-// Use timestamp as fallback
-
 const config = {
   title: "SPL Documentation",
   tagline: "Location Services & Mapping Platform",
@@ -31,19 +83,32 @@ const config = {
   organizationName: "spl", // Usually your GitHub org/user name.
   projectName: "spl-documentation", // Usually your repo name.
 
-  // Map styles are served through the API gateway. The subscription key is
-  // injected at build time from the environment, so no key is committed:
-  //   SPL_UAT_KEY=... npm run build
   customFields: {
     splGateway: {
-      base: process.env.SPL_GATEWAY_BASE || "https://apina.address.gov.sa/b2b-uat",
-      keyHeader: process.env.SPL_GATEWAY_KEY_HEADER || "Ocp-Apim-Subscription-Key",
-      key: process.env.SPL_UAT_KEY || "",
+      base: spl.gateway.base,
+      keyHeader: spl.gateway.keyHeader,
+      // The key is only needed when the demo map loads through the gateway.
+      key: spl.preview.base ? "" : spl.gateway.key,
     },
+    splEnvironment: spl.environment,
+    // Display-only source for the demo map. It is never shown in the docs.
+    splPreview: spl.preview,
   },
 
-  onBrokenLinks: "warn", // Changed from "throw" to "warn" to allow build with broken links
-  onBrokenMarkdownLinks: "warn",
+  onBrokenLinks: "warn",
+
+  markdown: {
+    // The guides write note boxes as `:::note Title`. That title form is only
+    // converted into a note box when this compatibility option is on.
+    mdx1Compat: {
+      admonitions: true,
+    },
+    hooks: {
+      onBrokenMarkdownLinks: "warn",
+      onBrokenMarkdownImages: "warn",
+    },
+    preprocessor: resolvePlaceholders,
+  },
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -64,10 +129,6 @@ const config = {
       ({
         docs: {
           sidebarPath: "./sidebars.js",
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
         },
         theme: {
           customCss: "./src/css/custom.css",
@@ -84,7 +145,7 @@ const config = {
         },
         specs: [
           {
-            spec: process.env.API_SPEC_URL || "openapi.json",
+            spec: resolveOpenApiSpec(),
             id: "spl-redoc",
             route: "/api",
           },
@@ -112,45 +173,40 @@ const config = {
         items: [
           { to: "api", label: "API", position: "left" },
           { to: "maps", label: "Maps", position: "left" },
-          // {
-          //   to: "docs/maps/using-spl-maps",
-          //   label: "Developers guide",
-          //   position: "left",
-          // },
           {
             type: "doc",
-            docId: "maps/using-spl-maps", // 👈 this will be the main link (react-native.md)
+            docId: "maps/using-spl-maps",
             label: "Developers guide",
             position: "left",
             items: [
               {
                 type: "doc",
-                docId: "maps/api-keys", // api-keys.mdx
+                docId: "maps/api-keys",
                 label: "API Keys & Authentication",
               },
               {
                 type: "doc",
-                docId: "maps/html-map-viewer", // html-map-viewer.mdx
+                docId: "maps/html-map-viewer",
                 label: "HTML Map Viewer",
               },
               {
                 type: "doc",
-                docId: "maps/using-spl-maps", // using-spl-maps.md
+                docId: "maps/using-spl-maps",
                 label: "Using SPL Maps",
               },
               {
                 type: "doc",
-                docId: "maps/react-native", // react-native.md
+                docId: "maps/react-native",
                 label: "React Native Guide",
               },
               {
                 type: "doc",
-                docId: "maps/arcgis-qgis-integration", // arcgis-qgis-integration.md
+                docId: "maps/arcgis-qgis-integration",
                 label: "ArcGIS & QGIS Integration",
               },
               {
                 type: "doc",
-                docId: "maps/maplibre-resources", // maplibre-resources.md
+                docId: "maps/maplibre-resources",
                 label: "MapLibre Resources",
               },
             ],

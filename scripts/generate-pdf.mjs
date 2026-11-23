@@ -23,6 +23,7 @@ import {
   StandardFonts,
   rgb,
 } from "pdf-lib";
+import { getSplSettings } from "./lib/env.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BUILD_DIR = join(ROOT, "build");
@@ -31,17 +32,22 @@ const OUTPUT = join(ROOT, "spl-docs.pdf");
 // so every URL on the static build carries that prefix.
 const BASE_PATH = "/docs/";
 
+// What the documentation describes, and how the demo map is drawn.
+const spl = getSplSettings();
+// Values that must never appear in a PDF that is shared with clients.
+const SECRETS = {
+  "gateway API key": spl.gateway.key,
+  "display-only map server": spl.preview.base ? new URL(spl.preview.base).host : "",
+};
+
 // Reading order of the PDF. Paths are relative to the baseUrl, so
 // "docs/maps/api-keys/" is served at /docs/docs/maps/api-keys/.
-// The interactive Maps landing page is included first because it carries the
-// gateway integration section; its map loads slowly, so it gets a looser
-// network-idle condition and extra settle time for the tiles to paint.
 const SECTIONS = [
   {
     path: "maps/",
     fallbackTitle: "SPL Map Styles Explorer",
-    waitUntil: "networkidle2",
-    settleMs: 20000,
+    // The interactive map has to be fully drawn before the page is printed.
+    map: true,
   },
   { path: "docs/maps/using-spl-maps/", fallbackTitle: "Using SPL Maps" },
   { path: "docs/maps/api-keys/", fallbackTitle: "API Keys & Authentication" },
@@ -103,9 +109,11 @@ const PRINT_CSS = `
   }
   .markdown { max-width: 100% !important; }
 
-  /* Wrap long lines instead of clipping code samples at the page edge. */
-  pre, code { white-space: pre-wrap !important; word-break: break-word !important; }
-  td, th { word-break: break-word; }
+  /* Wrap long lines instead of clipping code samples at the page edge. Short
+     inline codes such as "401" stay on one line: break only what overflows. */
+  pre, pre code { white-space: pre-wrap !important; overflow-wrap: anywhere !important; }
+  :not(pre) > code { white-space: normal !important; overflow-wrap: break-word; }
+  td, th { overflow-wrap: break-word; }
 
   *, *::before, *::after {
     animation: none !important;
@@ -117,6 +125,20 @@ const PRINT_CSS = `
   h1, h2, h3, h4 { break-after: avoid-page; }
   img, tr, blockquote { break-inside: avoid-page; }
 
+  /* Keep small boxes whole: a note or a style card is never split. */
+  .alert, [class*="styleOption"] { break-inside: avoid; page-break-inside: avoid; }
+
+  /* The map is printed as one landscape picture that stays on one page. */
+  [class*="mapWrapper"] {
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 16 / 10;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+
+  /* A table's first column stays wide enough for "HTTP" and a status code. */
+  th:first-child, td:first-child { min-width: 4.5rem; }
+
   /* Reveal every tab panel: a print capture must not lose the content of
      inactive tabs (e.g. the Azure gateway docs under the B2B/Azure tabs). */
   [role="tabpanel"] { display: block !important; }
@@ -125,12 +147,22 @@ const PRINT_CSS = `
     padding-top: 1rem;
     border-top: 1px dashed #bbb;
   }
+  /* Redoc leaves its inactive tabs empty; shown, they print as dark bars. */
+  [role="tabpanel"]:empty { display: none !important; border: 0 !important; margin: 0 !important; padding: 0 !important; }
 `;
+
+// A4 with the margins used for the PDF, in CSS pixels. The Maps page is laid
+// out at this size before its map is captured, so the picture fits its frame.
+const PRINT_WIDTH_PX = Math.round(((210 - 12 - 12) / 25.4) * 96);
+const PRINT_HEIGHT_PX = Math.round(((297 - 16 - 18) / 25.4) * 96);
 
 function findChrome() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
     return process.env.PUPPETEER_EXECUTABLE_PATH;
   }
+  const programFiles = process.env.PROGRAMFILES || "C:\\Program Files";
+  const programFilesX86 = process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)";
+  const localAppData = process.env.LOCALAPPDATA || "";
   const candidates = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Chromium.app/Contents/MacOS/Chromium",
@@ -138,6 +170,12 @@ function findChrome() {
     "/usr/bin/google-chrome-stable",
     "/usr/bin/chromium",
     "/usr/bin/chromium-browser",
+    // Windows: Chrome, or Edge (Chromium-based) when Chrome is not installed.
+    join(programFiles, "Google", "Chrome", "Application", "chrome.exe"),
+    join(programFilesX86, "Google", "Chrome", "Application", "chrome.exe"),
+    join(localAppData, "Google", "Chrome", "Application", "chrome.exe"),
+    join(programFiles, "Microsoft", "Edge", "Application", "msedge.exe"),
+    join(programFilesX86, "Microsoft", "Edge", "Application", "msedge.exe"),
   ];
   const found = candidates.find((candidate) => existsSync(candidate));
   if (!found) {
@@ -239,6 +277,11 @@ async function renderCover(browser, entries, commitSha) {
         `<li><span class="num">${index + 1}</span> ${entry.title}</li>`
     )
     .join("\n");
+  // The cover repeats the notice that every guide starts with.
+  const notice =
+    spl.environment === "test"
+      ? `<p class="notice"><strong>For testing and evaluation only.</strong> This documentation and its endpoints are intended for testing and evaluation purposes only, not for production integration.</p>`
+      : "";
   const html = `<!doctype html>
 <html>
   <head>
@@ -269,6 +312,7 @@ async function renderCover(browser, entries, commitSha) {
         color: #003566;
         font-weight: 600;
       }
+      .notice { font-size: 11pt; line-height: 1.5; color: #7a4b00; background: #fdf3d8; border-left: 4px solid #e0a800; padding: 3mm 4mm; margin-bottom: 8mm; }
       .meta { font-size: 10pt; color: #666; line-height: 1.7; }
     </style>
   </head>
@@ -276,6 +320,7 @@ async function renderCover(browser, entries, commitSha) {
     <div class="band"></div>
     <div class="cover">      <h1>SPL Documentation</h1>
       <p class="tagline">Location Services &amp; Mapping Platform - Offline PDF Backup</p>
+      ${notice}
       <ul class="toc">${tocItems}</ul>
       <p class="meta">
         Generated: ${generatedAt}<br />
@@ -372,10 +417,104 @@ async function stripB2BContent(page) {
   );
 }
 
+// Waits for the interactive map to finish loading. The map component reports
+// its state in a data attribute (see src/components/MapComponent).
+async function waitForMap(page) {
+  const deadline = Date.now() + 120000;
+  let last = { state: "none", message: "" };
+  while (Date.now() < deadline) {
+    last = await page.evaluate(() => {
+      const element = document.querySelector("[data-map-state]");
+      return element
+        ? { state: element.dataset.mapState, message: element.dataset.mapMessage || "" }
+        : { state: "none", message: "The map is missing from the page." };
+    });
+    if (last.state === "ready" || last.state === "error") break;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  if (last.state !== "ready") {
+    // A PDF with an error message or a blank map must not reach clients.
+    throw new Error(
+      `The map on the Maps page did not load (state: ${last.state}). ${last.message}` +
+        " Fix the map access first, then run the PDF generation again."
+    );
+  }
+  // Let the last tiles, labels and icons paint.
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+}
+
+// Fails when a value that must stay out of the shared PDF is visible on a page.
+async function assertNoSecrets(page) {
+  const text = await page.evaluate(() => document.body.innerText);
+  for (const [label, value] of Object.entries(SECRETS)) {
+    if (value && text.includes(value)) {
+      throw new Error(
+        `The ${label} appears in the visible text of ${page.url()}. It must not be part of the shared PDF.`
+      );
+    }
+  }
+}
+
+// The map is drawn with WebGL, which the print step does not capture reliably.
+// This takes a real picture of the drawn map and puts it in place of the canvas,
+// then proves that the picture actually shows a map. Call it after the print
+// styles are applied, so the picture has the size the page is printed at.
+async function captureMap(page) {
+  const canvases = await page.$$("canvas.maplibregl-canvas");
+  if (canvases.length === 0) {
+    throw new Error("The map is missing from the Maps page, so it cannot be printed.");
+  }
+  for (const canvas of canvases) {
+    // Lay the page out at the size it is printed at, then give the map time
+    // to redraw, so the picture has the proportions of its frame on paper.
+    await page.setViewport({ width: PRINT_WIDTH_PX, height: PRINT_HEIGHT_PX, deviceScaleFactor: 1 });
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const picture = await canvas.screenshot({ type: "png" });
+    const base64 = picture.toString("base64");
+    const stats = await page.evaluate(async (data) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${data}`;
+      await image.decode();
+      const probe = document.createElement("canvas");
+      probe.width = image.width;
+      probe.height = image.height;
+      const context = probe.getContext("2d");
+      context.drawImage(image, 0, 0);
+      const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
+      let sampled = 0;
+      let drawn = 0;
+      for (let i = 0; i < pixels.length; i += 4 * 61) {
+        sampled += 1;
+        if (pixels[i + 3] > 0 && (pixels[i] < 235 || pixels[i + 1] < 235 || pixels[i + 2] < 235)) drawn += 1;
+      }
+      return { width: image.width, height: image.height, sampled, drawn };
+    }, base64);
+    // A blank or empty picture must never reach the PDF.
+    if (stats.width < 200 || stats.height < 200 || stats.sampled === 0 || stats.drawn < stats.sampled * 0.02) {
+      throw new Error(
+        `The map picture is blank (${stats.width}x${stats.height}, ${stats.drawn} of ${stats.sampled} sampled pixels drawn), so the PDF was not created.`
+      );
+    }
+    await page.evaluate((data) => {
+      const target = document.querySelector("canvas.maplibregl-canvas");
+      if (!target) return;
+      const image = document.createElement("img");
+      image.src = `data:image/png;base64,${data}`;
+      image.alt = "SPL map";
+      image.style.cssText = `${target.style.cssText};width:${target.clientWidth}px;height:${target.clientHeight}px;`;
+      target.replaceWith(image);
+    }, base64);
+    console.log(
+      `  map captured: ${stats.width}x${stats.height}, ${Math.round((stats.drawn / stats.sampled) * 100)}% of the picture is map`
+    );
+  }
+}
+
 async function renderSection(browser, port, section) {
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
   const url = `http://127.0.0.1:${port}${BASE_PATH}${section.path}`;
+  console.log(`  ${url}`);
   await page.goto(url, {
     waitUntil: section.waitUntil || "networkidle0",
     timeout: 90000,
@@ -424,8 +563,13 @@ async function renderSection(browser, port, section) {
   });
   await autoScroll(page);
   await page.addStyleTag({ content: PRINT_CSS });
+  if (section.map) {
+    await waitForMap(page);
+    await captureMap(page);
+  }
   // Give hydration and late layout a moment to settle before printing.
   await new Promise((resolveSettle) => setTimeout(resolveSettle, section.settleMs || 500));
+  await assertNoSecrets(page);
   const heading = await page.evaluate(
     () => document.querySelector("h1")?.textContent?.trim() || ""
   );

@@ -4,6 +4,7 @@ import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import Layout from "@theme/Layout";
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
+import EnvironmentNotice from "@site/src/components/EnvironmentNotice";
 import Heading from "@theme/Heading";
 import styles from "./index.module.css";
 import { useEffect, useState } from "react";
@@ -94,6 +95,9 @@ export default function Home() {
     >
       <HomepageHeader />
       <main>
+        <div className="container padding-top--md">
+          <EnvironmentNotice />
+        </div>
         <HomePageContent />
         <HomepageFeatures />
       </main>

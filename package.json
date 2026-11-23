@@ -11,6 +11,7 @@
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "pdf": "docusaurus build && node scripts/generate-pdf.mjs",
+    "verify": "node scripts/verify-gateway.mjs",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids"
   },

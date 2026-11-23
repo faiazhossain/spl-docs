@@ -12,37 +12,53 @@ import TabItem from '@theme/TabItem';
 
 # API Keys & Authentication
 
-Every request to the SPL Maps API must be authenticated with an API key sent
-in the request header. Keys are issued through one of two gateways:
+Every request to the SPL Maps API must carry an API key in a request header. Authentication is per request: there is no login and no session. The same key and header are used for the map styles and for the APIs in the [API reference](/docs/api).
 
-- **B2B (Apigee)** - keys issued through the SPL B2B gateway
-- **Azure** - keys issued through Azure
-
-Use the key that matches the gateway it was issued for. A B2B key only works
-against the B2B base URL, and an Azure key only works against the Azure base
-URL. If you have both, use the one issued by the gateway you are calling.
-
-The development style URLs on `https://na-maps.vng-solutions.com` currently
-load without a key and are meant for evaluation only.
+Use the gateway that issued your key. SPL Maps is served through more than one gateway, and they differ in the base URL, the header that carries the key and, for some services, the path.
 
 <Tabs
   groupId="api-key-provider"
-  defaultValue="b2b"
+  defaultValue="apim"
   values={[
-    { label: "B2B (Apigee)", value: "b2b" },
-    { label: "Azure", value: "azure" },
+    { label: "Azure API Management", value: "apim" },
+    { label: "Apigee (B2B)", value: "b2b" },
   ]}
 >
 
-<TabItem value="b2b" label="B2B (Apigee)">
+<TabItem value="apim" label="Azure API Management">
+
+Use this option if your key was issued for the SPL API gateway.
+
+| Setting | Value |
+| --- | --- |
+| Base URL | `{{gatewayBase}}` |
+| Header | `{{gatewayKeyHeader}}` |
+
+Send your key in the `{{gatewayKeyHeader}}` header on **every** request. The key goes in the header only: the gateway does not accept it as a URL parameter. Map styles:
+
+```bash
+curl --location '{{gatewayBase}}/styles/spl_satellite/style.json' \
+--header '{{gatewayKeyHeader}}: YOUR_API_KEY'
+```
+
+The APIs use the same header and start with `/api/v1/` under the base URL:
+
+```bash
+curl --location '{{gatewayBase}}/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \
+--header '{{gatewayKeyHeader}}: YOUR_API_KEY'
+```
+
+</TabItem>
+
+<TabItem value="b2b" label="Apigee (B2B)">
 
 Use this option if your API key was issued through the SPL B2B (Apigee)
 gateway.
 
-| Setting     | Value                        |
-| ----------- | ---------------------------- |
-| Base URL    | `https://b2b.address.gov.sa` |
-| Auth header | `x-apikey`                   |
+| Setting | Value |
+| --- | --- |
+| Base URL | `https://b2b.address.gov.sa` |
+| Header | `x-apikey` |
 
 Every request against this base URL must carry your key in the `x-apikey`
 header:
@@ -52,8 +68,8 @@ curl --location 'https://b2b.address.gov.sa/styles/spl_satellite/style.json' \
 --header 'x-apikey: YOUR_B2B_API_KEY'
 ```
 
-The same header applies to the GeoSearch endpoints documented in the
-[API reference](/docs/api), for example:
+Note the different path layout: here the GeoSearch endpoints live under
+`/api/api/v1/...`.
 
 ```bash
 curl --location 'https://b2b.address.gov.sa/api/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \
@@ -62,64 +78,71 @@ curl --location 'https://b2b.address.gov.sa/api/api/v1/search/autocomplete?q=Riy
 
 </TabItem>
 
-<TabItem value="azure" label="Azure">
-
-Use this option if your API key was issued through Azure. Azure keys must be
-sent to the Azure gateway - do not send an Azure key to the B2B gateway.
-
-| Setting     | Value                                  |
-| ----------- | -------------------------------------- |
-| Base URL    | `https://apina.address.gov.sa/b2b`     |
-| UAT base URL | `https://apina.address.gov.sa/b2b-uat` |
-| Auth header | `Ocp-Apim-Subscription-Key`            |
-
-Send your Azure key in the `Ocp-Apim-Subscription-Key` header on every
-request. Map styles:
-
-```bash
-curl --location 'https://apina.address.gov.sa/b2b/styles/spl_satellite/style.json' \
---header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'
-```
-
-GeoSearch (v1) endpoints use the same header:
-
-```bash
-curl --location 'https://apina.address.gov.sa/b2b/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \
---header 'Ocp-Apim-Subscription-Key: YOUR_AZURE_API_KEY'
-```
-
-Note the different path layout: on Azure, GeoSearch endpoints live under
-`/b2b/api/v1/...`, while on the B2B gateway they live under `/api/api/v1/...`.
-
-**Current notes on the Azure gateway:**
-
-- Only the **v1** GeoSearch endpoints are available. The `v2.0` endpoints are
-  not offered.
-- On the UAT base URL, `https://apina.address.gov.sa/b2b-uat`, the full map
-  loads with the Azure key alone: the style, tiles, labels and icons are all
-  served through the gateway. The quickest way to see it is the
-  [HTML Map Viewer](/docs/docs/maps/html-map-viewer), a single page where you
-  enter the base URL and your key.
-
-</TabItem>
-
 </Tabs>
+
+## What happens when a request is not accepted
+
+The gateway answers with a JSON body that tells you what is wrong, so always look at the message and not only at the status code. A `401` means the key itself is the problem; a `403` means the key is valid but the request is not allowed right now.
+
+| HTTP | Gateway message | Meaning and what to do |
+| --- | --- | --- |
+| `401` | `Access denied due to missing subscription key. Make sure to include subscription key when making requests to an API.` | No key was sent. Check that the header is present on **every** request, including tiles, fonts and icons. |
+| `401` | `Access denied due to invalid subscription key. Make sure to provide a valid key for an active subscription.` | The key is unknown, mistyped or no longer active. Copy it again, and confirm with the SPL team that it is active. |
+| `403` | `Out of call volume quota. Quota will be replenished in HH:MM:SS.` | The key is valid but has used up its call volume quota. The message and the `Retry-After` header say when it is replenished. Nothing is wrong with the key: wait, or ask the SPL team for a higher quota. |
+| `404` | `Resource not found` | Nothing is served at this address on the gateway. Check the base URL, including its path, and the style ID or API path. |
+| `429` | - | The gateway is rate limiting because too many requests were sent too quickly. Pace the requests and retry with a growing delay. |
+
+## Quota and rate limits
+
+Two separate limits apply to a key, and they are easy to confuse because a
+map is not one request:
+
+- **Call volume quota** is the number of requests a key may make in a period.
+  Loading a map costs many requests: the style, then every map tile, every
+  label font file and the icon sheet. A single map view can use dozens of
+  requests, so the quota is used up much faster than the number of page views
+  suggests. When it is used up, every request returns `403` until the quota is
+  replenished.
+- **Rate limit** applies to the speed of requests. Sending many requests at
+  once is answered with `429`. Keep the number of concurrent requests low and
+  retry a `429` after a short delay.
+
+## Using the key in a browser
+
+A map in a web page has to send the key from the browser, so the browser calls
+the gateway directly. A browser only allows that when the gateway permits the
+website the page is on. The permitted websites are configured on the gateway.
+
+| Where the page runs | Can it call the gateway from the browser? |
+| --- | --- |
+| A website the gateway permits | Yes |
+| Any other website | No. The browser blocks the request before it is sent |
+| A file opened from disk (`file://`) | No. The browser blocks the request before it is sent |
+
+A blocked request does not return a status code. The page only reports a
+network error, such as `Failed to fetch` in JavaScript. If your website is not
+permitted yet, contact the SPL team and give them its address, for example
+`https://maps.your-domain.com`. An address used for local testing, such as
+`http://localhost:3000`, has to be permitted as well.
+
+Calling the gateway from your own backend is not subject to this rule, because
+a backend is not a browser. Let the page call your backend, and let your
+backend call the gateway with the key.
+
+Anyone who opens the browser tools of your page can see the key, so a key that
+is used in a browser must be treated as public. If the key has to stay secret,
+call the gateway from your backend instead.
 
 ## Best Practices
 
-1. **Keep keys secret**: never hard-code keys in client-side code (browsers
-   and mobile apps can be inspected) and never commit them to source control.
-   Route requests through your backend, or load the key from an environment
-   variable.
-2. **Send the key on every request**: authentication is per request - there
-   is no session or login step.
-3. **Use the matching gateway**: B2B keys for the B2B base URL, Azure keys
-   for the Azure base URL.
-4. **Rotate keys carefully**: if a key may have been exposed, contact the SPL
-   team to have it revoked and reissued.
+1. **Keep keys out of source control**: load the key from an environment variable or a secret store, and never commit it.
+2. **Send the key on every request**: authentication is per request. There is no session or login step, and a missing header on tiles or fonts leaves the map blank.
+3. **Read the gateway message**: `401` is a key problem, `403` is a quota problem and `404` is an address problem. Each one has a different fix.
+4. **Cache what you can**: the style changes rarely, and map tiles are cached by the browser. Do not reload the style on every page view.
+5. **Rotate keys carefully**: if a key may have been exposed, contact the SPL team to have it revoked and reissued.
 
 ## Next Steps
 
-- See the map in your browser with the [HTML Map Viewer](/docs/docs/maps/html-map-viewer) - no code needed
-- Explore the available styles in the [developer guide](/docs/docs/maps/using-spl-maps)
+- See the map in your browser with the [HTML Map Viewer](/docs/docs/maps/html-map-viewer): no code needed
+- Add the map to your application with [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps)
 - Browse the endpoints in the [API reference](/docs/api)
