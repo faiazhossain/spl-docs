@@ -1,5 +1,7 @@
 # Stage 1: build the static documentation site.
-FROM node:lts AS build
+# Build runs on the host architecture; only the runtime image matches the target,
+# so an arm64 Mac can produce an amd64 image without emulating the whole build.
+FROM --platform=$BUILDPLATFORM node:lts AS build
 WORKDIR /opt/docusaurus
 COPY package.json package-lock.json ./
 RUN npm ci
