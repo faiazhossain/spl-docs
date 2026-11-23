@@ -1,6 +1,6 @@
 ---
 sidebar_label: " SPL Maps in JavaScript"
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 <head>
@@ -13,6 +13,10 @@ import TabItem from '@theme/TabItem';
 # Using SPL Maps in JavaScript Projects
 
 This guide explains how to integrate VNG Solutions SPL maps into your JavaScript applications.
+
+:::tip Want to see the map first?
+The [HTML Map Viewer](/docs/docs/maps/html-map-viewer) is a single file you open in your browser. Enter your base URL and subscription key, and the map loads without any code.
+:::
 
 ## Authentication
 

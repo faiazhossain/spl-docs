@@ -1,6 +1,6 @@
 ---
 sidebar_label: "Arabic Text Support (RTL)"
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 <head>

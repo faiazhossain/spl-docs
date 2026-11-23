@@ -70,6 +70,7 @@ sent to the Azure gateway - do not send an Azure key to the B2B gateway.
 | Setting     | Value                                  |
 | ----------- | -------------------------------------- |
 | Base URL    | `https://apina.address.gov.sa/b2b`     |
+| UAT base URL | `https://apina.address.gov.sa/b2b-uat` |
 | Auth header | `Ocp-Apim-Subscription-Key`            |
 
 Send your Azure key in the `Ocp-Apim-Subscription-Key` header on every
@@ -94,10 +95,11 @@ Note the different path layout: on Azure, GeoSearch endpoints live under
 
 - Only the **v1** GeoSearch endpoints are available. The `v2.0` endpoints are
   not offered.
-- The style JSON and sprites load with the Azure key. Full map rendering is
-  still being completed on the gateway (tile sources currently expect an
-  additional B2B `x-apikey`, the glyph font endpoint is not published yet,
-  and CORS headers for browser access are not sent yet).
+- On the UAT base URL, `https://apina.address.gov.sa/b2b-uat`, the full map
+  loads with the Azure key alone: the style, tiles, labels and icons are all
+  served through the gateway. The quickest way to see it is the
+  [HTML Map Viewer](/docs/docs/maps/html-map-viewer), a single page where you
+  enter the base URL and your key.
 
 </TabItem>
 
@@ -118,5 +120,6 @@ Note the different path layout: on Azure, GeoSearch endpoints live under
 
 ## Next Steps
 
+- See the map in your browser with the [HTML Map Viewer](/docs/docs/maps/html-map-viewer) - no code needed
 - Explore the available styles in the [developer guide](/docs/docs/maps/using-spl-maps)
 - Browse the endpoints in the [API reference](/docs/api)

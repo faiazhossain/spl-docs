@@ -31,6 +31,17 @@ const config = {
   organizationName: "spl", // Usually your GitHub org/user name.
   projectName: "spl-documentation", // Usually your repo name.
 
+  // Map styles are served through the API gateway. The subscription key is
+  // injected at build time from the environment, so no key is committed:
+  //   SPL_UAT_KEY=... npm run build
+  customFields: {
+    splGateway: {
+      base: process.env.SPL_GATEWAY_BASE || "https://apina.address.gov.sa/b2b-uat",
+      keyHeader: process.env.SPL_GATEWAY_KEY_HEADER || "Ocp-Apim-Subscription-Key",
+      key: process.env.SPL_UAT_KEY || "",
+    },
+  },
+
   onBrokenLinks: "warn", // Changed from "throw" to "warn" to allow build with broken links
   onBrokenMarkdownLinks: "warn",
 
@@ -116,6 +127,11 @@ const config = {
                 type: "doc",
                 docId: "maps/api-keys", // api-keys.mdx
                 label: "API Keys & Authentication",
+              },
+              {
+                type: "doc",
+                docId: "maps/html-map-viewer", // html-map-viewer.mdx
+                label: "HTML Map Viewer",
               },
               {
                 type: "doc",

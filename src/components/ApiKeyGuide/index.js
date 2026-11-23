@@ -26,7 +26,7 @@ const API_PROVIDERS = [
     keyPlaceholder: "YOUR_AZURE_API_KEY",
     examplePath: "/styles/spl_satellite/style.json",
     description:
-      "For API keys issued through Azure. Azure keys work against the Azure gateway for the v1 GeoSearch endpoints and map styles. See the API Keys & Authentication page for current rendering limitations.",
+      "For API keys issued through Azure. Azure keys work against the Azure gateway for the v1 GeoSearch endpoints and map styles. The full map loads on the UAT base URL. See the API Keys & Authentication page for details.",
   },
 ];
 

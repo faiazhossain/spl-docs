@@ -24,6 +24,22 @@ yarn build
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
+## Offline PDF Backup
+
+Generates a self-contained PDF of all documentation (guides + full OpenAPI API reference) for use when the website is unreachable.
+
+```bash
+npm run pdf
+```
+
+This builds the site and writes `spl-docs.pdf` to the project root. The PDF includes a cover page, clickable outline bookmarks per section, and page numbers. Requires Google Chrome (or set `PUPPETEER_EXECUTABLE_PATH` to a Chromium binary).
+
+Notes:
+
+- The generator (`scripts/generate-pdf.mjs`) renders the built site headlessly, so anything the browser hides by default (inactive tabs, collapsed accordions) is explicitly expanded before printing.
+- The homepage and interactive Maps landing page are excluded on purpose; the cover page replaces them.
+- Regenerate the PDF whenever docs change and share the new file with the team.
+
 ## Deployment
 
 ### Docker Deployment

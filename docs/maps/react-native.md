@@ -1,6 +1,6 @@
 ---
 sidebar_label: "React Native"
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 <head>

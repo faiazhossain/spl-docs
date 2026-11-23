@@ -1,0 +1,167 @@
+---
+sidebar_label: "HTML Map Viewer"
+sidebar_position: 1
+---
+
+<head>
+  <title>SPL HTML Map Viewer - Load the Map with a Base URL and Subscription Key</title>
+</head>
+
+import useBaseUrl from "@docusaurus/useBaseUrl";
+
+export function DownloadViewer() {
+  // The viewer is a static file, so its path is resolved against the site
+  // baseUrl the same way the homepage resolves its assets.
+  const href = useBaseUrl("/downloads/SPL_Basemap_UAT.html");
+  return (
+    <p>
+      <a className="button button--primary button--lg" href={href} download>
+        Download the viewer
+      </a>
+    </p>
+  );
+}
+
+# HTML Map Viewer
+
+The HTML Map Viewer is a single web page that loads the SPL basemap in your
+browser. There is nothing to install and no code to write. Open the file, enter
+the API Management base URL and the subscription key you were given, and the
+map loads with your key attached to every request.
+
+<DownloadViewer />
+
+:::note Which keys work
+The viewer sends your key in the `Ocp-Apim-Subscription-Key` header, so it
+works with keys issued through Azure. Keys that use the `x-apikey` header are
+not supported by this file. See
+[API Keys & Authentication](/docs/docs/maps/api-keys).
+:::
+
+## What you need
+
+- The viewer file, `SPL_Basemap_UAT.html`, downloaded from the button above.
+- A subscription key issued for the map gateway. If you do not have one yet,
+  contact the SPL team.
+- The base URL of the map gateway. For UAT this is
+  `https://apina.address.gov.sa/b2b-uat`.
+- A modern browser with an internet connection. The viewer loads MapLibre GL JS
+  from a public CDN, so it does not work offline.
+
+## Step 1: Download and open the viewer
+
+1. Click the download button above. The file is saved as
+   `SPL_Basemap_UAT.html`.
+2. Double-click the file to open it in your browser. You do not need a web
+   server.
+3. A **Connect to the map gateway** dialog opens over the map.
+
+## Step 2: Enter your base URL and key
+
+Fill in the three fields and click **Load map**.
+
+| Field | What to enter |
+| --- | --- |
+| **Base URL** | The gateway URL up to, but not including, `/styles/...` |
+| **Subscription key** | The key you were given. It is kept only for this browser tab. |
+| **Style ID** | The style to load. The default is `spl_bgmaps`. |
+
+For UAT, the base URL is `https://apina.address.gov.sa/b2b-uat`. Your key is
+sent to the gateway in the `Ocp-Apim-Subscription-Key` header. If your gateway
+offers other styles, such as `spl_dark` or `spl_satellite`, enter that style ID
+instead.
+
+Use **Show** to display the key and check it for typos.
+
+The viewer then checks your entries before it draws the map, so a wrong key or
+URL is reported in the dialog instead of leaving you with a blank map.
+
+## Step 3: Use the map
+
+After the map loads, a panel in the top-left corner shows your connection (the
+style ID and the gateway) and the status of the map.
+
+**Go to** moves the map to a place: Saudi Arabia, Riyadh, Jeddah, Makkah,
+Dammam, Riyadh street level, and two vertical address examples (VA and KACST).
+
+**Status** shows what the viewer is doing.
+
+| Status | Meaning |
+| --- | --- |
+| Style | The name of the loaded style and its number of layers. |
+| Tiles | How many map tiles have loaded. |
+| 429 retries | How many requests were sent again after the gateway rate limited them. |
+| Errors | How many requests failed. Their messages are listed under the status. |
+| View | The map center (latitude, longitude) and the current zoom level. |
+
+### Move around the map
+
+- Drag the map to move it.
+- Use the scroll wheel, or the **+** and **-** buttons in the top-right corner,
+  to zoom in and out.
+- Click the compass button in the same corner to point the map back north.
+
+### Do more with the viewer
+
+- **Change**, next to the connection, reopens the dialog so you can switch to
+  another base URL, key or style.
+- Click any feature on the map to inspect its attributes.
+- The fullscreen and locate buttons sit under the zoom buttons in the top-right
+  corner, and a scale bar is in the bottom-left corner.
+- On a screen narrower than 600 pixels the panel moves to the bottom and can be
+  folded away with **Hide**.
+
+## How it works
+
+1. **Your entries are checked first.** The viewer requests the style at
+   `{base URL}/styles/{style ID}/style.json` and then one of its tile sources,
+   sending your key with both. If either request fails, the dialog stays open
+   and explains why.
+2. **Every request to your base URL carries your key.** The style, the map
+   tiles, the label fonts (glyphs) and the icons (sprites) are all loaded from
+   the gateway with the `Ocp-Apim-Subscription-Key` header. Requests to other
+   hosts, such as the CDN, are sent without it.
+3. **Requests are paced.** No more than 6 requests run at the same time. When
+   the gateway answers `429 Too Many Requests`, the viewer waits and tries
+   again, up to 6 times per request, waiting a little longer each time. Every
+   retry is counted under **429 retries**.
+4. **Failures are reported.** Failed requests are counted under **Errors**, and
+   up to 20 different messages are listed in the panel.
+
+### What the viewer remembers
+
+After a successful connection the viewer stores your base URL and style ID in
+the browser, and keeps your key only for the current tab. When you reload the
+page in the same tab it reconnects by itself. Close the tab to clear the key.
+
+:::caution The key is used in your browser
+The viewer sends your key from your browser, which is fine for checking your
+access and looking at the map. For your own application, follow the best
+practices in [API Keys & Authentication](/docs/docs/maps/api-keys).
+:::
+
+## Troubleshooting
+
+The dialog explains why a connection failed. The panel reports requests that
+fail after the map has loaded. A message starts with `Style` or
+`Map data (TileJSON)`, depending on which check failed.
+
+| Message | Cause and what to do |
+| --- | --- |
+| `... was rejected (HTTP 401)` or `(HTTP 403)` | The key is missing, wrong or not active for this API. Click **Show** and check the key, then confirm with the SPL team that it is active for the map API. |
+| `... not found (HTTP 404)` | Nothing exists at that address. Check the base URL, including its path, and the style ID. |
+| `The gateway is rate limiting requests (HTTP 429)` | The gateway is limiting the number of requests. Wait a minute and click **Load map** again. |
+| `The gateway returned a server error (HTTP 5xx)` | There is a problem on the gateway. Try again later. If it persists, contact the SPL team. |
+| `Couldn't get a response from ...` | The gateway did not answer, or the browser blocked the request. Check the base URL for typos, including the path, and check your connection. If the URL is correct, the gateway may be down. |
+| `... did not return JSON` | The address is not the map gateway. Check that the base URL points at the map gateway. |
+| `... is not a MapLibre style` | The address answered, but not with a map style. Check the base URL and the style ID. |
+| `Map data requests are being rejected` in the panel | The key loads the style but not the map tiles. Ask the SPL team to check the key's access to the tile APIs. |
+
+A rejected key usually ends with
+`Server said: "Access denied due to invalid subscription key. Make sure to provide a valid key for an active subscription."`
+
+## Next steps
+
+- Add the map to your own application with
+  [SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps)
+- Browse the endpoints in the [API reference](/docs/api)

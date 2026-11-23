@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SPL Basemap UAT</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.24.0/maplibre-gl.css" integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK" crossorigin="anonymous">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.24.0/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1d2330;
+      --muted: #5b6475;
+      --border: #dde1e8;
+      --accent: #0b6e4f;
+      --ok: #1a7f37;
+      --err: #c62828;
+      --err-bg: #fdecea;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: #e9ecef; }
+    #map { position: absolute; inset: 0; }
+    .panel {
+      position: absolute; top: 12px; left: 12px; z-index: 2;
+      width: min(300px, calc(100vw - 24px));
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.12); padding: 12px 14px;
+    }
+    .panel h1 { margin: 0 0 2px; font-size: 15px; }
+    .panel .sub { margin: 0 0 10px; color: var(--muted); font-size: 12px; word-break: break-all; }
+    .panel h2 { margin: 12px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    .jumps { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .jumps button {
+      font: inherit; font-size: 12px; text-align: left; cursor: pointer;
+      padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #f7f8fa; color: var(--fg);
+    }
+    .jumps button:hover, .jumps button:focus-visible { border-color: var(--accent); outline: none; }
+    .status { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 12px; }
+    .status dt { color: var(--muted); }
+    .status dd { margin: 0; font-variant-numeric: tabular-nums; }
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
+    #errors { margin: 6px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--err); max-height: 90px; overflow: auto; word-break: break-all; }
+    .hint { margin: 10px 0 0; font-size: 11px; color: var(--muted); }
+    .link { font: inherit; font-size: 12px; padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; text-decoration: underline; }
+    .alert { margin: 8px 0 0; padding: 8px 10px; border-radius: 6px; background: var(--err-bg); color: var(--err); font-size: 12px; word-break: break-word; }
+    .alert[hidden] { display: none; }
+    .toggle { display: none; }
+
+    /* Connection form */
+    .setup {
+      position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px;
+      background: rgba(29, 35, 48, .45);
+    }
+    .setup[hidden] { display: none; }
+    .setup form {
+      width: min(440px, 100%); background: var(--bg); border-radius: 12px; padding: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.25);
+    }
+    .setup h1 { margin: 0 0 4px; font-size: 17px; }
+    .setup .sub { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600; }
+    .field .help { margin-top: 3px; font-size: 12px; color: var(--muted); }
+    .field input {
+      width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: #fff;
+    }
+    .field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+    .key-row { display: flex; gap: 6px; }
+    .key-row input { flex: 1; min-width: 0; }
+    .key-row button { font: inherit; font-size: 12px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; background: #f7f8fa; cursor: pointer; }
+    .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+    .actions button { font: inherit; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); background: #fff; color: var(--fg); }
+    .actions button[type=submit] { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    .actions button:disabled { opacity: .6; cursor: progress; }
+    .actions button[hidden] { display: none; }
+
+    .maplibregl-popup-content { max-width: 320px; max-height: 260px; overflow: auto; font-size: 12px; }
+    .maplibregl-popup-content table { border-collapse: collapse; }
+    .maplibregl-popup-content td { padding: 1px 6px 1px 0; vertical-align: top; }
+    .maplibregl-popup-content td:first-child { color: var(--muted); white-space: nowrap; }
+    .maplibregl-popup-content .feat + .feat { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+    @media (max-width: 600px) {
+      .panel { top: auto; bottom: 34px; }
+      .panel.collapsed .body { display: none; }
+      .toggle { display: inline-block; float: right; font: inherit; font-size: 12px; border: 0; background: none; color: var(--accent); cursor: pointer; }
+    }
+  </style>
+</head>
+<body>
+  <div id="map" role="region" aria-label="SPL basemap"></div>
+
+  <div class="setup" id="setup" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+    <form id="setup-form" novalidate>
+      <h1 id="setup-title">Connect to the map gateway</h1>
+      <p class="sub">Enter the API Management base URL and your subscription key.</p>
+      <div class="field">
+        <label for="f-base">Base URL</label>
+        <input id="f-base" name="base" type="url" required placeholder="https://apina.address.gov.sa/b2b-uat" autocomplete="url" spellcheck="false">
+        <div class="help">The gateway URL up to, but not including, <code>/styles/…</code></div>
+      </div>
+      <div class="field">
+        <label for="f-key">Subscription key</label>
+        <div class="key-row">
+          <input id="f-key" name="key" type="password" required autocomplete="off" spellcheck="false" placeholder="Ocp-Apim-Subscription-Key">
+          <button type="button" id="f-key-show" aria-pressed="false">Show</button>
+        </div>
+        <div class="help">Sent as the <code>Ocp-Apim-Subscription-Key</code> header. Kept only for this browser tab.</div>
+      </div>
+      <div class="field">
+        <label for="f-style">Style ID</label>
+        <input id="f-style" name="styleId" type="text" required value="spl_bgmaps" spellcheck="false">
+      </div>
+      <div class="alert" id="setup-error" role="alert" hidden></div>
+      <div class="actions">
+        <button type="button" id="setup-cancel" hidden>Cancel</button>
+        <button type="submit" id="setup-submit">Load map</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel" id="panel" hidden>
+    <button class="toggle" id="toggle" type="button" aria-expanded="true">Hide</button>
+    <h1>SPL Basemap — UAT</h1>
+    <p class="sub"><span id="conn-label"></span> · <button type="button" class="link" id="change-conn">Change</button></p>
+    <div class="body">
+      <h2>Go to</h2>
+      <div class="jumps" id="jumps"></div>
+
+      <h2>Status</h2>
+      <dl class="status">
+        <dt>Style</dt><dd id="st-style">loading…</dd>
+        <dt>Tiles</dt><dd id="st-tiles">0 loaded</dd>
+        <dt>429 retries</dt><dd id="st-retries">0</dd>
+        <dt>Errors</dt><dd id="st-errors" class="ok">0</dd>
+        <dt>View</dt><dd id="st-view">—</dd>
+      </dl>
+      <div class="alert" id="map-alert" role="alert" hidden></div>
+      <ul id="errors"></ul>
+      <p class="hint">Click any feature on the map to inspect its attributes.</p>
+    </div>
+  </div>
+
+  <script>
+    const KEY_HEADER = 'Ocp-Apim-Subscription-Key';
+    const PLACES = [
+      { label: 'Saudi Arabia', bounds: [[34.457, 16.29], [55.667, 32.154]] },
+      { label: 'Riyadh', center: [46.6753, 24.7136], zoom: 11 },
+      { label: 'Jeddah', center: [39.1925, 21.5169], zoom: 12 },
+      { label: 'Makkah', center: [39.8262, 21.4225], zoom: 13 },
+      { label: 'Dammam', center: [50.1033, 26.4207], zoom: 12 },
+      { label: 'Riyadh street level', center: [46.6853, 24.6933], zoom: 16 },
+      { label: 'Vertical address (VA)', center: [46.6093, 24.6943], zoom: 17 },
+      { label: 'Vertical address (KACST)', center: [46.8304, 24.8901], zoom: 17.5 },
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const redact = (s) => String(s).replace(/key=[^&\s]+/gi, 'key=…');
+
+    // Browser storage can be unavailable (private mode, blocked site data); treat it as optional.
+    const storage = {
+      get: (area, k) => { try { return window[area].getItem(k); } catch { return null; } },
+      set: (area, k, v) => { try { window[area].setItem(k, v); } catch { /* optional */ } },
+    };
+
+    // Arabic labels need the RTL plugin on MapLibre 5.x.
+    maplibregl.setRTLTextPlugin('https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js', true);
+
+    // The gateway rate-limits bursts (HTTP 429) without exposing Retry-After to the browser.
+    // gatewayFetch caps concurrent requests and retries 429s with backoff.
+    const MAX_CONCURRENT = 6;
+    let retries = 0;
+    let active = 0;
+    const waiting = [];
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const acquire = () => active < MAX_CONCURRENT ? (active++, Promise.resolve()) : new Promise((r) => waiting.push(r));
+    const release = () => { const next = waiting.shift(); next ? next() : active--; };
+    async function gatewayFetch(url, init) {
+      for (let attempt = 0; ; attempt++) {
+        await acquire();
+        let res;
+        try { res = await fetch(url, init); } finally { release(); }
+        if (res.status !== 429 || attempt >= 6) return res;
+        retries++;
+        $('st-retries').textContent = String(retries);
+        const retryAfter = Number(res.headers.get('Retry-After'));
+        await sleep(retryAfter ? retryAfter * 1000 : 400 * 2 ** attempt + Math.random() * 300);
+      }
+    }
+
+    // MapLibre routes gateway requests through this protocol so they get the retry behaviour.
+    const RETRY_PROTOCOL = 'splretry';
+    maplibregl.addProtocol(RETRY_PROTOCOL, async (params, abortController) => {
+      const url = params.url.replace(`${RETRY_PROTOCOL}://`, 'https://');
+      const res = await gatewayFetch(url, { headers: params.headers, signal: abortController.signal });
+      if (!res.ok) throw Object.assign(new Error(`${res.status} ${url}`), { status: res.status, url });
+      if (params.type === 'json') return { data: await res.json() };
+      if (params.type === 'string') return { data: await res.text() };
+      return { data: await res.arrayBuffer() };
+    });
+
+    // Turns a failed gateway response into a message a tester can act on.
+    function describeHttp(what, url, status, body) {
+      let detail = '';
+      try { detail = JSON.parse(body).message || ''; } catch { detail = body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
+      detail = detail ? ` Server said: "${detail.slice(0, 200)}"` : '';
+      if (status === 401 || status === 403) return `${what} was rejected (HTTP ${status}). Check the subscription key is correct and active for this API.${detail}`;
+      if (status === 404) return `${what} not found (HTTP 404) at ${redact(url)}. Check the base URL and style ID.${detail}`;
+      if (status === 429) return `The gateway is rate limiting requests (HTTP 429). Wait a minute and try again.${detail}`;
+      if (status >= 500) return `The gateway returned a server error (HTTP ${status}) for ${what.toLowerCase()}. Try again later.${detail}`;
+      return `${what} request failed (HTTP ${status}).${detail}`;
+    }
+
+    async function fetchGatewayJson(url, key, what) {
+      let res;
+      try {
+        res = await gatewayFetch(url, { headers: { [KEY_HEADER]: key } });
+      } catch {
+        throw new Error(`Couldn't get a response from ${redact(url)}. Check the base URL for typos, including the path (e.g. /b2b-uat). If it is correct, the gateway may be down or blocking browser requests (CORS).`);
+      }
+      const body = await res.text();
+      if (!res.ok) throw new Error(describeHttp(what, url, res.status, body));
+      try { return JSON.parse(body); } catch { throw new Error(`${what} at ${redact(url)} did not return JSON. Check the base URL points at the map gateway.`); }
+    }
+
+    // Origins referenced by the style other than the gateway's. The UAT style points at an
+    // internal host that doesn't resolve publicly, so these get rewritten to the gateway.
+    function foreignOrigins(style, gatewayOrigin) {
+      const urls = [style.glyphs, ...[style.sprite].flat().map((s) => (typeof s === 'string' ? s : s?.url))];
+      for (const src of Object.values(style.sources || {})) urls.push(src.url, ...(src.tiles || []));
+      const origins = new Set();
+      for (const u of urls) {
+        if (typeof u !== 'string' || !/^https?:\/\//.test(u)) continue;
+        const o = new URL(u).origin;
+        if (o !== gatewayOrigin) origins.add(o);
+      }
+      return origins;
+    }
+
+    // Validates the inputs against the gateway: fetches the style and one TileJSON so a
+    // bad key or URL fails here with a clear message instead of as a blank map.
+    async function connect({ base, key, styleId }) {
+      let baseUrl;
+      try { baseUrl = new URL(base); } catch { throw new Error('Base URL is not a valid URL. Example: https://apina.address.gov.sa/b2b-uat'); }
+      if (!/^https?:$/.test(baseUrl.protocol)) throw new Error('Base URL must start with https://');
+      if (!key) throw new Error('Enter the subscription key.');
+      if (!styleId) throw new Error('Enter the style ID.');
+
+      const root = `${baseUrl.origin}${baseUrl.pathname.replace(/\/+$/, '')}`;
+      const styleUrl = `${root}/styles/${encodeURIComponent(styleId)}/style.json`;
+      const style = await fetchGatewayJson(styleUrl, key, 'Style');
+      if (style?.version !== 8 || !Array.isArray(style.layers)) {
+        throw new Error(`The response from ${redact(styleUrl)} is not a MapLibre style (expected "version": 8 with layers).`);
+      }
+
+      const conn = { root, key, styleId, styleUrl, rewrite: foreignOrigins(style, baseUrl.origin) };
+      const probe = Object.values(style.sources || {}).find((s) => s.url);
+      if (probe) await fetchGatewayJson(rewriteUrl(conn, probe.url), key, 'Map data (TileJSON)');
+      return conn;
+    }
+
+    function rewriteUrl(conn, url) {
+      for (const o of conn.rewrite) if (url.startsWith(`${o}/`)) return conn.root + url.slice(o.length);
+      return url;
+    }
+
+    // Map lifecycle
+    let map = null;
+    let conn = null;
+    let tilesLoaded = 0;
+    let errorCount = 0;
+    let seenErrors = new Set();
+
+    function resetStatus() {
+      tilesLoaded = 0; errorCount = 0; retries = 0; seenErrors = new Set();
+      $('st-style').textContent = 'loading…'; $('st-style').className = '';
+      $('st-tiles').textContent = '0 loaded';
+      $('st-retries').textContent = '0';
+      $('st-errors').textContent = '0'; $('st-errors').className = 'ok';
+      $('errors').replaceChildren();
+      $('map-alert').hidden = true;
+    }
+
+    function startMap(c) {
+      if (map) map.remove();
+      conn = c;
+      resetStatus();
+      $('conn-label').textContent = `${conn.styleId} @ ${new URL(conn.root).host}${new URL(conn.root).pathname}`;
+      $('panel').hidden = false;
+
+      map = new maplibregl.Map({
+        container: 'map',
+        style: conn.styleUrl,
+        center: [46.6753, 24.7136],
+        zoom: 10,
+        hash: true,
+        // Rewrite internal-host URLs to the gateway; attach the key only to gateway requests.
+        transformRequest: (url, resourceType) => {
+          url = rewriteUrl(conn, url);
+          if (!url.startsWith(conn.root)) return { url };
+          const headers = { [KEY_HEADER]: conn.key };
+          if (resourceType !== 'SpriteImage') return { url: url.replace(/^https:\/\//, `${RETRY_PROTOCOL}://`), headers };
+          return { url, headers };
+        },
+      });
+
+      map.addControl(new maplibregl.NavigationControl(), 'top-right');
+      map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+      map.addControl(new maplibregl.GeolocateControl({ trackUserLocation: false }), 'top-right');
+      map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
+
+      map.on('style.load', () => {
+        const s = map.getStyle();
+        $('st-style').textContent = `${s.name || conn.styleId} (${s.layers.length} layers)`;
+        $('st-style').className = 'ok';
+      });
+      map.on('data', (e) => {
+        if (e.dataType === 'source' && e.tile && e.isSourceLoaded !== undefined) {
+          tilesLoaded++;
+          $('st-tiles').textContent = `${tilesLoaded} loaded`;
+        }
+      });
+      map.on('error', (e) => {
+        errorCount++;
+        $('st-errors').textContent = String(errorCount);
+        $('st-errors').className = 'err';
+        const status = e.error?.status;
+        const msg = redact((status ? `${status} ` : '') + (e.error?.url || e.error?.message || 'Unknown error'));
+        if (!seenErrors.has(msg) && seenErrors.size < 20) {
+          seenErrors.add(msg);
+          const li = document.createElement('li');
+          li.textContent = msg;
+          $('errors').appendChild(li);
+        }
+        if ((status === 401 || status === 403) && $('map-alert').hidden) {
+          $('map-alert').textContent = `Map data requests are being rejected (HTTP ${status}). The key works for the style but may not have access to the tile APIs.`;
+          $('map-alert').hidden = false;
+        }
+      });
+      const updateView = () => {
+        const ctr = map.getCenter();
+        $('st-view').textContent = `${ctr.lat.toFixed(5)}, ${ctr.lng.toFixed(5)} · z${map.getZoom().toFixed(1)}`;
+      };
+      map.on('move', updateView);
+      updateView();
+
+      // Click to inspect features
+      map.on('click', (e) => {
+        const feats = map.queryRenderedFeatures(e.point);
+        const seen = new Set();
+        const unique = feats.filter((f) => {
+          const k = `${f.source}/${f.sourceLayer}/${f.id ?? JSON.stringify(f.properties)}`;
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        }).slice(0, 5);
+        if (!unique.length) return;
+        const html = unique.map((f) => {
+          const rows = Object.entries(f.properties).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('');
+          return `<div class="feat"><strong>${esc(f.sourceLayer || f.layer.id)}</strong> <span style="color:var(--muted)">(${esc(f.source)})</span><table>${rows}</table></div>`;
+        }).join('');
+        new maplibregl.Popup({ maxWidth: '340px' }).setLngLat(e.lngLat).setHTML(html).addTo(map);
+      });
+      map.on('mousemove', (e) => {
+        map.getCanvas().style.cursor = map.queryRenderedFeatures(e.point).length ? 'pointer' : '';
+      });
+    }
+
+    const esc = (v) => String(v).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+    // Jump buttons
+    for (const p of PLACES) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = p.label;
+      b.onclick = () => p.bounds ? map.fitBounds(p.bounds, { padding: 30, animate: false }) : map.jumpTo({ center: p.center, zoom: p.zoom });
+      $('jumps').appendChild(b);
+    }
+
+    // Mobile panel toggle
+    $('toggle').onclick = () => {
+      const collapsed = $('panel').classList.toggle('collapsed');
+      $('toggle').textContent = collapsed ? 'Show' : 'Hide';
+      $('toggle').setAttribute('aria-expanded', String(!collapsed));
+    };
+
+    // Connection form
+    const form = $('setup-form');
+    const showSetup = () => {
+      $('setup-error').hidden = true;
+      $('setup-cancel').hidden = !map;
+      $('setup').hidden = false;
+      (form.base.value ? form.key : form.base).focus();
+    };
+    $('change-conn').onclick = showSetup;
+    $('setup-cancel').onclick = () => { $('setup').hidden = true; };
+    $('f-key-show').onclick = () => {
+      const show = form.key.type === 'password';
+      form.key.type = show ? 'text' : 'password';
+      $('f-key-show').textContent = show ? 'Hide' : 'Show';
+      $('f-key-show').setAttribute('aria-pressed', String(show));
+    };
+
+    async function submitConnection(values) {
+      $('setup-error').hidden = true;
+      $('setup-submit').disabled = true;
+      $('setup-submit').textContent = 'Checking…';
+      try {
+        const c = await connect(values);
+        storage.set('localStorage', 'spl.base', values.base);
+        storage.set('localStorage', 'spl.style', values.styleId);
+        storage.set('sessionStorage', 'spl.key', values.key);
+        $('setup').hidden = true;
+        startMap(c);
+      } catch (err) {
+        $('setup-error').textContent = err.message;
+        $('setup-error').hidden = false;
+        $('setup').hidden = false;
+      } finally {
+        $('setup-submit').disabled = false;
+        $('setup-submit').textContent = 'Load map';
+      }
+    }
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      submitConnection({ base: form.base.value.trim(), key: form.key.value.trim(), styleId: form.styleId.value.trim() });
+    };
+
+    // Prefill from earlier use; reconnect automatically on reload within the same tab.
+    form.base.value = storage.get('localStorage', 'spl.base') || '';
+    form.styleId.value = storage.get('localStorage', 'spl.style') || 'spl_bgmaps';
+    form.key.value = storage.get('sessionStorage', 'spl.key') || '';
+    if (form.base.value && form.key.value) submitConnection({ base: form.base.value, key: form.key.value, styleId: form.styleId.value });
+    else showSetup();
+  </script>
+</body>
+</html>

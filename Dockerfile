@@ -1,22 +1,17 @@
-# Stage 1: Base image for development and build.
-FROM --platform=$BUILDPLATFORM node:lts AS base
-ENV FORCE_COLOR=0
-RUN corepack enable
+# Stage 1: build the static documentation site.
+FROM node:lts AS build
 WORKDIR /opt/docusaurus
-
-# Stage 2a: Development mode.
-FROM base AS dev
-EXPOSE 3000
-CMD [ -d "node_modules" ] && npm run start || npm run install && npm run start --host 0.0.0.0
-
-# Stage 2b: Production build - runs on native arch (avoids QEMU emulation).
-FROM base AS prod
-COPY . /opt/docusaurus/
+COPY package.json package-lock.json ./
 RUN npm ci
+COPY . .
+# Optional: bake a gateway subscription key into the build so the interactive
+# map on /docs/maps/ can load styles. Omit it and the key stays out of the image.
+ARG SPL_UAT_KEY=""
+ENV SPL_UAT_KEY=$SPL_UAT_KEY
 RUN npm run build
 
-# Stage 3: Serve static files with nginx (multi-arch, no emulation needed).
+# Stage 2: serve the static output.
 FROM nginx:alpine AS serve
-COPY --from=prod /opt/docusaurus/build /usr/share/nginx/html
+COPY --from=build /opt/docusaurus/build /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
