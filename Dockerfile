@@ -12,8 +12,10 @@ ARG SPL_UAT_KEY=""
 ENV SPL_UAT_KEY=$SPL_UAT_KEY
 RUN npm run build
 
-# Stage 2: serve the static output.
+# Stage 2: serve the static output. The site is built for the /docs/ base path,
+# so the whole build directory is mounted at /docs/ and / redirects there.
 FROM nginx:alpine AS serve
-COPY --from=build /opt/docusaurus/build /usr/share/nginx/html
+COPY --from=build /opt/docusaurus/build /usr/share/nginx/html/docs
+RUN printf 'server {\n  listen 80;\n  root /usr/share/nginx/html;\n  location = / { return 302 /docs/; }\n  location / { try_files $uri $uri/ =404; }\n}\n' > /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
