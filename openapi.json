@@ -207,6 +207,86 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/V1SearchResponse"
+                },
+                "example": {
+                  "results": [
+                    {
+                      "id": "67bffca17f36e2f90b8e6269",
+                      "name": "Riyadh",
+                      "name_ar": "الرياض",
+                      "address": "12251, Al Woroud, Riyadh, Riyadh Principality, Riyadh",
+                      "address_ar": "12251, الورود, منطقة الرياض, امارة منطقة الرياض, منطقة الرياض",
+                      "zipcode": "12251",
+                      "district": "Al Woroud Dist.",
+                      "city": "Riyadh",
+                      "governorate": "Riyadh Principality",
+                      "region": "Riyadh",
+                      "governorate_ar": "امارة منطقة الرياض",
+                      "region_ar": "منطقة الرياض",
+                      "city_ar": "الرياض",
+                      "district_ar": "حي الورود",
+                      "street_ar": null,
+                      "country": "Saudi Arabia",
+                      "type": "bank",
+                      "holding": "",
+                      "street": "",
+                      "popularity_ranking": 40,
+                      "location": [
+                        24.7135517,
+                        46.6752957
+                      ],
+                      "addendum_json": {
+                        "cityid": "3",
+                        "distid": "10100003026",
+                        "govid": "10100",
+                        "regionid": "1",
+                        "zipcodeid": "12251"
+                      },
+                      "country_code": "SAU",
+                      "timestamp": 1761049111,
+                      "geo_distance_meters": null
+                    },
+                    {
+                      "id": "67bffd0a849867759ce65c51",
+                      "name": "Riyadh Zair Ghafal",
+                      "name_ar": "رياض ال زاير غافل",
+                      "address": "12251, Al Woroud, Riyadh, Riyadh Principality, Riyadh",
+                      "address_ar": "12251, الورود, منطقة الرياض, امارة منطقة الرياض, منطقة الرياض",
+                      "zipcode": "12251",
+                      "district": "Al Woroud Dist.",
+                      "city": "Riyadh",
+                      "governorate": "Riyadh Principality",
+                      "region": "Riyadh",
+                      "governorate_ar": "امارة منطقة الرياض",
+                      "region_ar": "منطقة الرياض",
+                      "city_ar": "الرياض",
+                      "district_ar": "حي الورود",
+                      "street_ar": null,
+                      "country": "Saudi Arabia",
+                      "type": "historical landmark",
+                      "holding": "",
+                      "street": "",
+                      "popularity_ranking": 40,
+                      "location": [
+                        24.7135517,
+                        46.6752957
+                      ],
+                      "addendum_json": {
+                        "cityid": "3",
+                        "distid": "10100003026",
+                        "govid": "10100",
+                        "regionid": "1",
+                        "zipcodeid": "12251"
+                      },
+                      "country_code": "SAU",
+                      "timestamp": 1761049133,
+                      "geo_distance_meters": null
+                    }
+                  ],
+                  "total_results": 2825,
+                  "page": 1,
+                  "per_page": 10,
+                  "search_time_ms": 5
                 }
               }
             }
@@ -306,6 +386,28 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Get Place Types Api V1 Search Place Types Get"
+                },
+                "example": {
+                  "food_and_dining": [
+                    "restaurant",
+                    "buffet restaurant",
+                    "seafood restaurant"
+                  ],
+                  "shopping": [
+                    "shopping mall",
+                    "department store",
+                    "supermarket"
+                  ],
+                  "transportation": [
+                    "transit station",
+                    "train station",
+                    "bus station"
+                  ],
+                  "automotive": [
+                    "car dealer",
+                    "car rental",
+                    "car repair"
+                  ]
                 }
               }
             }
@@ -404,6 +506,50 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/V1SearchResponse"
+                },
+                "example": {
+                  "results": [
+                    {
+                      "id": "67bffca17f36e2f90b8e6269",
+                      "name": "Riyadh",
+                      "name_ar": "الرياض",
+                      "address": "12251, Al Woroud, Riyadh, Riyadh Principality, Riyadh",
+                      "address_ar": "12251, الورود, منطقة الرياض, امارة منطقة الرياض, منطقة الرياض",
+                      "zipcode": "12251",
+                      "district": "Al Woroud Dist.",
+                      "city": "Riyadh",
+                      "governorate": "Riyadh Principality",
+                      "region": "Riyadh",
+                      "governorate_ar": "امارة منطقة الرياض",
+                      "region_ar": "منطقة الرياض",
+                      "city_ar": "الرياض",
+                      "district_ar": "حي الورود",
+                      "street_ar": null,
+                      "country": "Saudi Arabia",
+                      "type": "bank",
+                      "holding": "",
+                      "street": "",
+                      "popularity_ranking": 40,
+                      "location": [
+                        24.7135517,
+                        46.6752957
+                      ],
+                      "addendum_json": {
+                        "cityid": "3",
+                        "distid": "10100003026",
+                        "govid": "10100",
+                        "regionid": "1",
+                        "zipcodeid": "12251"
+                      },
+                      "country_code": "SAU",
+                      "timestamp": 1761049111,
+                      "geo_distance_meters": null
+                    }
+                  ],
+                  "total_results": 1,
+                  "page": 1,
+                  "per_page": 1,
+                  "search_time_ms": 5
                 }
               }
             }
@@ -554,6 +700,50 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/V1SearchResponse"
+                },
+                "example": {
+                  "results": [
+                    {
+                      "id": "6a7cf5f2a5c1b6a2213d2ede",
+                      "name": "RHWB6204",
+                      "name_ar": "",
+                      "address": "6204, Al Olaya, Al Woroud Dist., 12215, Riyadh",
+                      "address_ar": "6204، العليا، حي الورود، 12215، الرياض",
+                      "zipcode": "12215",
+                      "district": "Al Woroud Dist.",
+                      "city": "RIYADH",
+                      "governorate": "Riyadh Principality",
+                      "region": "Riyadh",
+                      "governorate_ar": "امارة منطقة الرياض",
+                      "region_ar": "منطقة الرياض",
+                      "city_ar": "الرياض",
+                      "district_ar": "حي الورود",
+                      "street_ar": "العليا",
+                      "country": "Saudi Arabia",
+                      "type": "address",
+                      "holding": "6204",
+                      "street": "Al Olaya",
+                      "popularity_ranking": 40,
+                      "location": [
+                        24.71380496,
+                        46.67501574
+                      ],
+                      "addendum_json": {
+                        "cityid": "3",
+                        "distid": "10100003026",
+                        "govid": "10100",
+                        "regionid": "1",
+                        "zipcodeid": "12215"
+                      },
+                      "country_code": "SA",
+                      "timestamp": 1784718252,
+                      "geo_distance_meters": 36
+                    }
+                  ],
+                  "total_results": 1,
+                  "page": 1,
+                  "per_page": 1,
+                  "search_time_ms": 147
                 }
               }
             }
