@@ -84,7 +84,7 @@ for (const id of STYLES) {
 if (first) {
   const referenced = [first.style.glyphs, ...[first.style.sprite].flat().map((s) => (typeof s === "string" ? s : s && s.url)), ...Object.values(first.style.sources).flatMap((s) => [s.url, ...(s.tiles || [])])].filter((u) => typeof u === "string" && /^https?:\/\//.test(u));
   const internal = [...new Set(referenced.map((u) => new URL(u).origin))].filter((o) => o !== origin);
-  record(internal.length > 0, "style refers to another host (rewriting)", internal.join(", ") || "no - the style is self-contained");
+  record(true, "hosts the style refers to", internal.length ? `${internal.join(", ")} (rewriting needed)` : "only the gateway (self-contained: no rewriting needed)");
   const rewrite = (url) => { for (const o of internal) if (url.startsWith(`${o}/`)) return base + url.slice(o.length); return url; };
   const viaGateway = async (url) => {
     const target = rewrite(url);
@@ -94,8 +94,10 @@ if (first) {
   record(r.status === 200, "label fonts (glyphs)", `${r.status} ${r.bytes.length} bytes`);
   const sprite = [first.style.sprite].flat()[0];
   const spriteUrl = typeof sprite === "string" ? sprite : sprite?.url;
-  const rj = await viaGateway(`${spriteUrl}.json`);
-  const rp = await viaGateway(`${spriteUrl}.png`);
+  // MapLibre adds the extension before the query string of the sprite address.
+  const withExtension = (url, ext) => (url.includes("?") ? url.replace("?", `${ext}?`) : url + ext);
+  const rj = await viaGateway(withExtension(spriteUrl, ".json"));
+  const rp = await viaGateway(withExtension(spriteUrl, ".png"));
   record(rj.status === 200 && rp.status === 200, "icons (sprite)", `json ${rj.status}, png ${rp.status} ${rp.bytes.length} bytes`);
   const source = Object.values(first.style.sources).find((s) => s.url);
   if (source) {
