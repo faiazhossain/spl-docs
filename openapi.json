@@ -3,7 +3,7 @@
   "info": {
     "title": "GeoSearch API",
     "version": "1.0.0",
-    "description": "> **For testing and evaluation only.** This documentation and its endpoints are intended for testing and evaluation purposes only, not for production integration.\n\n# Authentication\n\nEvery request must carry your API key in the `{{gatewayKeyHeader}}` request header. The key goes in the header only: the gateway does not accept it as a URL parameter.\n\n```bash\ncurl --location '{{gatewayBase}}/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'\n```\n\nKeep API keys out of client-side code and never commit them to source control. Details are in the [API Keys & Authentication](/docs/docs/maps/api-keys) guide.\n\n# Available APIs\n\n| API | Endpoint | What it does |\n| --- | --- | --- |\n| Autocomplete Search | `GET /api/v1/search/autocomplete` | Find places by name. |\n| Get Place Types | `GET /api/v1/search/place_types` | List the place types a result can have. |\n| Get Place by ID | `GET /api/v1/search/place/{place_id}` | Look up one place by its ID. |\n| Reverse Geocode | `GET /api/v1/reverse/geocode` | Find the address of a location. |\n| Route | `GET /api/v1/route/{version}/{profile}/{coordinates}` | Fastest route between coordinates. |\n| Trip | `GET /api/v1/trip/{version}/{profile}/{coordinates}` | Fastest order for a list of stops. |\n\nThe map styles are described in the [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps) guide.\n\nThe `v2.0` endpoints are not available on the gateway: it answers `404 Resource not found` for them.\n\n# Errors\n\nThe gateway always answers with a JSON body that has a `statusCode` and a `message`. Read the message: it says what is wrong.\n\n| HTTP | Meaning |\n| --- | --- |\n| `401` | The key is missing, or it is not valid. |\n| `403` | The key is valid, but its call volume quota is used up. The message says when it is replenished. |\n| `404` | Nothing is served at this address. Check the base URL and the path. |\n| `422` | A parameter is missing or out of range. The `detail` list says which one. |\n"
+    "description": "> **For testing and evaluation only.** This documentation and its endpoints are intended for testing and evaluation purposes only, not for production integration.\n\n# Authentication\n\nEvery request must carry your API key in the `{{gatewayKeyHeader}}` request header. The key goes in the header only: the gateway does not accept it as a URL parameter.\n\n```bash\ncurl --location '{{gatewayBase}}/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'\n```\n\nKeep API keys out of client-side code and never commit them to source control. Details are in the [API Keys & Authentication](/docs/docs/maps/api-keys) guide.\n\n# Available APIs\n\n| API | Endpoint | What it does |\n| --- | --- | --- |\n| Autocomplete Search | `GET /api/v1/search/autocomplete` | Find places by name. |\n| Get Place Types | `GET /api/v1/search/place_types` | List the place types a result can have. |\n| Get Place by ID | `GET /api/v1/search/place/{place_id}` | Look up one place by its ID. |\n| Reverse Geocode | `GET /api/v1/reverse/geocode` | Find the address of a location. |\n| Route | `GET /api/v1/route/{profile}/{coordinates}` | Fastest route between coordinates. |\n| Trip | `GET /api/v1/trip/{profile}/{coordinates}` | Fastest order for a list of stops. |\n\nThe map styles are described in the [Using SPL Maps in JavaScript](/docs/docs/maps/using-spl-maps) guide.\n\nThe `v2.0` endpoints are not available on the gateway: it answers `404 Resource not found` for them.\n\n# Errors\n\nThe gateway always answers with a JSON body that has a `statusCode` and a `message`. Read the message: it says what is wrong.\n\n| HTTP | Meaning |\n| --- | --- |\n| `401` | The key is missing, or it is not valid. |\n| `403` | The key is valid, but its call volume quota is used up. The message says when it is replenished. |\n| `404` | Nothing is served at this address. Check the base URL and the path. |\n| `422` | A parameter is missing or out of range. The `detail` list says which one. |\n"
   },
   "paths": {
     "/api/v1/search/autocomplete": {
@@ -826,13 +826,13 @@
         ]
       }
     },
-    "/api/v1/route/{version}/{profile}/{coordinates}": {
+    "/api/v1/route/{profile}/{coordinates}": {
       "get": {
         "tags": [
           "Route"
         ],
         "summary": "Route API",
-        "description": "Returns the fastest route between coordinates.\n\n- `coordinates` is a list of `lon,lat` pairs separated by `;`.\n- Use `v1` for `version` and `driving` for `profile`.\n- Set `steps=true` for turn-by-turn instructions, and `geometries=geojson` to get the route line in GeoJSON format.",
+        "description": "Returns the fastest route between coordinates.\n\n- `coordinates` is a list of `lon,lat` pairs separated by `;`.\n- Use `driving` for `profile`.\n- Set `steps=true` for turn-by-turn instructions, and `geometries=geojson` to get the route line in GeoJSON format.",
         "operationId": "route_api_v1_route__version___profile___coordinates__get",
         "parameters": [
           {
@@ -1117,7 +1117,48 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "example": {
+                  "code": "Ok",
+                  "routes": [
+                    {
+                      "legs": [
+                        {
+                          "steps": [],
+                          "weight": 812.7,
+                          "summary": "",
+                          "duration": 812.7,
+                          "distance": 13579.1
+                        }
+                      ],
+                      "weight_name": "routability",
+                      "geometry": "e{yuCqg{{GygEndBoqEkqNzUsJpDnLhBs@",
+                      "weight": 812.7,
+                      "duration": 812.7,
+                      "distance": 13579.1
+                    }
+                  ],
+                  "waypoints": [
+                    {
+                      "hint": "9ucGgP___38CAAAAAgAAAG8AAAAHAAAAuyxRQAAAAADTHTZDD55dQQIAAAACAAAAbwAAAAcAAAAZFQAAXTXIAp4ZeQFkNcgCgBl5AQgAPw8AAAAA",
+                      "location": [
+                        46.675293,
+                        24.71363
+                      ],
+                      "name": "العروبة",
+                      "distance": 3.397694066
+                    },
+                    {
+                      "hint": "189PgE3QT4BcAAAABQAAAAAAAAAAAAAAp6eAQukwREAAAAAAAAAAAFwAAAAFAAAAAAAAAAAAAAAZFQAAPy3JAtkGegGoLMkCnAZ6AQAAvwkAAAAA",
+                      "location": [
+                        46.738751,
+                        24.774361
+                      ],
+                      "name": "الديوان",
+                      "distance": 16.69919024
+                    }
+                  ]
+                }
               }
             }
           },
@@ -1194,12 +1235,12 @@
         "x-codeSamples": [
           {
             "lang": "cURL",
-            "source": "curl --location '{{gatewayBase}}/api/v1/route/{version}/{profile}/{coordinates}?steps=false&overview=simplified' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
+            "source": "curl --location '{{gatewayBase}}/api/v1/route/{profile}/{coordinates}?steps=false&overview=simplified' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
           }
         ]
       }
     },
-    "/api/v1/trip/{version}/{profile}/{coordinates}": {
+    "/api/v1/trip/{profile}/{coordinates}": {
       "get": {
         "tags": [
           "Route"
@@ -1488,7 +1529,52 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "example": {
+                  "code": "Ok",
+                  "trips": [
+                    {
+                      "legs": [
+                        {
+                          "steps": [],
+                          "weight": 812.7,
+                          "summary": "",
+                          "duration": 812.7,
+                          "distance": 13579.1
+                        }
+                      ],
+                      "weight_name": "routability",
+                      "geometry": "e{yuCqg{{GygEndBoqEkqNzUsJpDnLhBs@",
+                      "weight": 812.7,
+                      "duration": 812.7,
+                      "distance": 13579.1
+                    }
+                  ],
+                  "waypoints": [
+                    {
+                      "waypoint_index": 0,
+                      "distance": 3.397694066,
+                      "name": "العروبة",
+                      "location": [
+                        46.675293,
+                        24.71363
+                      ],
+                      "hint": "9ucGgP___38CAAAAAgAAAG8AAAAHAAAAuyxRQAAAAADTHTZDD55dQQIAAAACAAAAbwAAAAcAAAAZFQAAXTXIAp4ZeQFkNcgCgBl5AQgAPw8AAAAA",
+                      "trips_index": 0
+                    },
+                    {
+                      "waypoint_index": 1,
+                      "distance": 16.69919024,
+                      "name": "الديوان",
+                      "location": [
+                        46.738751,
+                        24.774361
+                      ],
+                      "hint": "189PgE3QT4BcAAAABQAAAAAAAAAAAAAAp6eAQukwREAAAAAAAAAAAFwAAAAFAAAAAAAAAAAAAAAZFQAAPy3JAtkGegGoLMkCnAZ6AQAAvwkAAAAA",
+                      "trips_index": 0
+                    }
+                  ]
+                }
               }
             }
           },
@@ -1565,7 +1651,7 @@
         "x-codeSamples": [
           {
             "lang": "cURL",
-            "source": "curl --location '{{gatewayBase}}/api/v1/trip/{version}/{profile}/{coordinates}?source=first&roundtrip=false' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
+            "source": "curl --location '{{gatewayBase}}/api/v1/trip/{profile}/{coordinates}?source=first&roundtrip=false' \\\n--header '{{gatewayKeyHeader}}: YOUR_API_KEY'"
           }
         ]
       }
