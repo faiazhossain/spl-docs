@@ -101,7 +101,12 @@ export function foreignOrigins(style, gatewayOrigin) {
 
 export function rewriteUrl(connection, url) {
   for (const origin of connection.rewrite) {
-    if (url.startsWith(`${origin}/`)) return connection.root + url.slice(origin.length);
+    if (!url.startsWith(`${origin}/`)) continue;
+    const target = new URL(connection.root + url.slice(origin.length));
+    // The gateway styles embed an expired key in a `key=` query parameter, and
+    // the gateway validates that value before the header, so it has to go.
+    target.searchParams.delete("key");
+    return target.toString();
   }
   return url;
 }

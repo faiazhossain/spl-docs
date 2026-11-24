@@ -271,7 +271,14 @@
     }
 
     function rewriteUrl(conn, url) {
-      for (const o of conn.rewrite) if (url.startsWith(`${o}/`)) return conn.root + url.slice(o.length);
+      for (const o of conn.rewrite) {
+        if (!url.startsWith(`${o}/`)) continue;
+        const target = new URL(conn.root + url.slice(o.length));
+        // The style embeds an expired key in a `key=` query parameter, and the
+        // gateway validates that value before the header, so it has to go.
+        target.searchParams.delete('key');
+        return target.toString();
+      }
       return url;
     }
 
