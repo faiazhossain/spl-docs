@@ -10,7 +10,7 @@
 // and page numbers, so developers can use it fully offline if the site is down.
 
 import { createServer } from "node:http";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, statSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { execSync } from "node:child_process";
 import { extname, join, normalize, resolve, dirname } from "node:path";
@@ -149,6 +149,13 @@ const PRINT_CSS = `
   }
   /* Redoc leaves its inactive tabs empty; shown, they print as dark bars. */
   [role="tabpanel"]:empty { display: none !important; border: 0 !important; margin: 0 !important; padding: 0 !important; }
+
+  /* Gallery of every map style, two pictures per row with captions. */
+  .pdf-style-gallery { columns: 2; column-gap: 8mm; margin-top: 6mm; }
+  .pdf-style-gallery h2 { column-span: all; break-after: avoid-page; margin-bottom: 4mm; }
+  .pdf-style-item { break-inside: avoid; page-break-inside: avoid; margin: 0 0 7mm; }
+  .pdf-style-item img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border: 0.4pt solid #c8cdd6; border-radius: 3px; }
+  .pdf-style-item figcaption { font-size: 9.5pt; font-weight: 600; color: #003566; margin-top: 2mm; }
 `;
 
 // A4 with the margins used for the PDF, in CSS pixels. The Maps page is laid
@@ -443,6 +450,166 @@ async function waitForMap(page) {
   await new Promise((resolve) => setTimeout(resolve, 3000));
 }
 
+// Samples a captured picture and reports how much of it is actually drawn,
+// so a blank or empty picture can never reach the PDF.
+async function pictureStats(page, base64) {
+  return page.evaluate(async (data) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${data}`;
+    await image.decode();
+    const probe = document.createElement("canvas");
+    probe.width = image.width;
+    probe.height = image.height;
+    const context = probe.getContext("2d");
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
+    let sampled = 0;
+    let drawn = 0;
+    for (let i = 0; i < pixels.length; i += 4 * 61) {
+      sampled += 1;
+      if (pixels[i + 3] > 0 && (pixels[i] < 235 || pixels[i + 1] < 235 || pixels[i + 2] < 235)) drawn += 1;
+    }
+    return { width: image.width, height: image.height, sampled, drawn };
+  }, base64);
+}
+
+// Clicks through every style card on the Maps page, zooms each view in far
+// enough for POIs to appear, and appends a labelled picture of every style
+// as a gallery the print step captures. Call it while the map is still
+// interactive, before captureMap replaces the canvas with a picture.
+async function captureStyleGallery(page) {
+  const cards = await page.$$('[class*="styleOption"]');
+  if (cards.length <= 1) return;
+
+  const pictureDir = join(ROOT, "node_modules", ".cache", "spl-docs", "style-pictures");
+  mkdirSync(pictureDir, { recursive: true });
+
+  const waitReady = () =>
+    page.waitForFunction(
+      () => {
+        const state = document.querySelector("[data-map-state]")?.getAttribute("data-map-state");
+        return state === "ready" || state === "error";
+      },
+      { timeout: 90000, polling: 200 }
+    );
+  const waitState = (state, timeout) =>
+    page.waitForFunction(
+      (expected) => document.querySelector("[data-map-state]")?.getAttribute("data-map-state") === expected,
+      { timeout, polling: 150 },
+      state
+    ).catch(() => false);
+
+  // Selects a style card and waits until its map is drawn. Returns false when
+  // the display-only server does not carry the style (HTTP 404), so the caller
+  // can skip it; throws for every other failure.
+  const switchStyle = async (card, title) => {
+    await card.click();
+    // "loading" can be too quick to observe, so only "ready" is awaited.
+    await waitState("loading", 5000);
+    try {
+      await waitReady();
+    } catch {
+      const state = await page.evaluate(() => ({
+        state: document.querySelector("[data-map-state]")?.getAttribute("data-map-state"),
+        message: document.querySelector("[data-map-state]")?.getAttribute("data-map-message") || "",
+      }));
+      throw new Error(
+        `The style "${title}" did not load (state: ${state.state}). ${state.message} ` +
+          "Fix the map access first, then run the PDF generation again."
+      );
+    }
+    const state = await page.evaluate(() => ({
+      state: document.querySelector("[data-map-state]")?.getAttribute("data-map-state"),
+      message: document.querySelector("[data-map-state]")?.getAttribute("data-map-message") || "",
+    }));
+    if (state.state === "error") {
+      if (state.message.includes("HTTP 404")) return false;
+      throw new Error(
+        `The style "${title}" failed to load. ${state.message} Fix the map access first, then run the PDF generation again.`
+      );
+    }
+    return true;
+  };
+
+  const items = [];
+  for (const card of cards) {
+    const title = await card.$eval("h3", (el) => el.textContent.trim());
+    const loaded = await switchStyle(card, title);
+    if (!loaded) {
+      console.log(`  style skipped: ${title} (not on the display-only map server)`);
+      continue;
+    }
+    // Zoom in so POIs are visible: the map handle exposed by the component
+    // drives the view to a fixed downtown-Riyadh location at street zoom.
+    const zoomed = await page.evaluate(() => {
+      const map = window.__splDemoMap;
+      if (!map) return false;
+      map.jumpTo({ center: [46.6853, 24.7009], zoom: 15.2 });
+      return true;
+    });
+    if (!zoomed) {
+      throw new Error("The map handle is missing from the page, so the style views cannot be zoomed in.");
+    }
+    await page.waitForNetworkIdle({ idleTime: 600, timeout: 30000 }).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const canvas = await page.$("canvas.maplibregl-canvas");
+    if (!canvas) {
+      throw new Error(`The map canvas is missing from the page after loading "${title}".`);
+    }
+    const state = await page.evaluate(
+      () => document.querySelector("[data-map-state]")?.getAttribute("data-map-state")
+    );
+    if (state === "error") {
+      const message = await page.evaluate(
+        () => document.querySelector("[data-map-state]")?.getAttribute("data-map-message") || ""
+      );
+      throw new Error(
+        `The style "${title}" failed while drawing. ${message} Fix the map access first, then run the PDF generation again.`
+      );
+    }
+    const picture = await canvas.screenshot({ type: "png" });
+    const stats = await pictureStats(page, picture.toString("base64"));
+    if (stats.width < 200 || stats.height < 200 || stats.sampled === 0 || stats.drawn < stats.sampled * 0.02) {
+      throw new Error(
+        `The picture of "${title}" is blank (${stats.drawn} of ${stats.sampled} sampled pixels drawn), so the PDF was not created.`
+      );
+    }
+    await writeFile(
+      join(pictureDir, `${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`),
+      picture
+    );
+    items.push({ title, base64: picture.toString("base64") });
+    console.log(
+      `  style captured: ${title} (${stats.width}x${stats.height}, ${Math.round((stats.drawn / stats.sampled) * 100)}% drawn)`
+    );
+  }
+
+  // Back to the first style so the main map picture matches the page default.
+  await switchStyle(cards[0], "default");
+  await page.waitForNetworkIdle({ idleTime: 500, timeout: 30000 }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  await page.evaluate((styleItems) => {
+    const gallery = document.createElement("div");
+    gallery.className = "pdf-style-gallery";
+    const heading = document.createElement("h2");
+    heading.textContent = "All map styles";
+    gallery.append(heading);
+    for (const item of styleItems) {
+      const figure = document.createElement("figure");
+      figure.className = "pdf-style-item";
+      const image = document.createElement("img");
+      image.src = `data:image/png;base64,${item.base64}`;
+      image.alt = `${item.title} map preview, zoomed in`;
+      const caption = document.createElement("figcaption");
+      caption.textContent = item.title;
+      figure.append(image, caption);
+      gallery.append(figure);
+    }
+    document.querySelector(".container")?.append(gallery);
+  }, items);
+}
+
 // Fails when a value that must stay out of the shared PDF is visible on a page.
 async function assertNoSecrets(page) {
   const text = await page.evaluate(() => document.body.innerText);
@@ -467,28 +634,26 @@ async function captureMap(page) {
   for (const canvas of canvases) {
     // Lay the page out at the size it is printed at, then give the map time
     // to redraw, so the picture has the proportions of its frame on paper.
+    // A canvas resized while WebGL redraws can come back cleared, so the
+    // capture is retried with an explicit repaint until it shows the map.
     await page.setViewport({ width: PRINT_WIDTH_PX, height: PRINT_HEIGHT_PX, deviceScaleFactor: 1 });
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const picture = await canvas.screenshot({ type: "png" });
-    const base64 = picture.toString("base64");
-    const stats = await page.evaluate(async (data) => {
-      const image = new Image();
-      image.src = `data:image/png;base64,${data}`;
-      await image.decode();
-      const probe = document.createElement("canvas");
-      probe.width = image.width;
-      probe.height = image.height;
-      const context = probe.getContext("2d");
-      context.drawImage(image, 0, 0);
-      const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
-      let sampled = 0;
-      let drawn = 0;
-      for (let i = 0; i < pixels.length; i += 4 * 61) {
-        sampled += 1;
-        if (pixels[i + 3] > 0 && (pixels[i] < 235 || pixels[i + 1] < 235 || pixels[i + 2] < 235)) drawn += 1;
-      }
-      return { width: image.width, height: image.height, sampled, drawn };
-    }, base64);
+    let base64 = null;
+    let stats = { width: 0, height: 0, sampled: 0, drawn: 0 };
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await page.evaluate(() => {
+        const map = window.__splDemoMap;
+        if (map) {
+          map.resize();
+          map.triggerRepaint();
+        }
+      });
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const picture = await canvas.screenshot({ type: "png" });
+      base64 = picture.toString("base64");
+      stats = await pictureStats(page, base64);
+      if (stats.width >= 200 && stats.height >= 200 && stats.sampled > 0 && stats.drawn >= stats.sampled * 0.02) break;
+    }
     // A blank or empty picture must never reach the PDF.
     if (stats.width < 200 || stats.height < 200 || stats.sampled === 0 || stats.drawn < stats.sampled * 0.02) {
       throw new Error(
@@ -565,6 +730,7 @@ async function renderSection(browser, port, section) {
   await page.addStyleTag({ content: PRINT_CSS });
   if (section.map) {
     await waitForMap(page);
+    await captureStyleGallery(page);
     await captureMap(page);
   }
   // Give hydration and late layout a moment to settle before printing.

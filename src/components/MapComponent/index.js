@@ -43,6 +43,9 @@ export default function MapComponent({ styleId }) {
         transformRequest: (url, resourceType) =>
           transformGatewayRequest(connection.current, url, resourceType),
       });
+      // Exposed for the offline PDF capture (scripts/generate-pdf.mjs), which
+      // drives the map to zoomed-in views of every style.
+      window.__splDemoMap = map.current;
       map.current.addControl(new maplibregl.NavigationControl(), "top-right");
       map.current.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
       map.current.on("error", (event) => {
