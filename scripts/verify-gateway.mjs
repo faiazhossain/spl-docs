@@ -46,7 +46,7 @@ r = await call("/styles/spl_bgmaps/style.json", { keyOverride: "0".repeat(32) })
 record(r.status === 401, "style with a wrong key is refused", `${r.status} ${gatewayMessage(r).slice(0, 60)}`);
 r = await call("/styles/spl_bgmaps/style.json?subscription-key=" + (key || "0".repeat(32)), { header: false });
 record(r.status === 401 || !key, "key as URL parameter is not accepted", `${r.status} ${key ? "" : "(skipped: no key)"}`);
-for (const path of ["/api/v2.0/search/autocomplete", "/health"]) {
+for (const path of ["/api/v2.0/search/autocomplete", "/api/v2/route/driving/46.6753,24.7136;46.7386,24.7743", "/health"]) {
   r = await call(path);
   record(r.status === 404, `${path} is not served`, `${r.status} ${gatewayMessage(r)}`);
 }
@@ -85,7 +85,17 @@ if (first) {
   const referenced = [first.style.glyphs, ...[first.style.sprite].flat().map((s) => (typeof s === "string" ? s : s && s.url)), ...Object.values(first.style.sources).flatMap((s) => [s.url, ...(s.tiles || [])])].filter((u) => typeof u === "string" && /^https?:\/\//.test(u));
   const internal = [...new Set(referenced.map((u) => new URL(u).origin))].filter((o) => o !== origin);
   record(true, "hosts the style refers to", internal.length ? `${internal.join(", ")} (rewriting needed)` : "only the gateway (self-contained: no rewriting needed)");
-  const rewrite = (url) => { for (const o of internal) if (url.startsWith(`${o}/`)) return base + url.slice(o.length); return url; };
+  // Rewritten URLs drop the `key=` query parameter the styles embed: it holds
+  // an expired key, and the gateway validates that value before the header.
+  const rewrite = (url) => {
+    for (const o of internal) {
+      if (!url.startsWith(`${o}/`)) continue;
+      const target = new URL(base + url.slice(o.length));
+      target.searchParams.delete("key");
+      return target.toString();
+    }
+    return url;
+  };
   const viaGateway = async (url) => {
     const target = rewrite(url);
     return target.startsWith(base) ? call(target.slice(base.length)) : { status: 0, text: `not on the gateway: ${target}`, bytes: Buffer.alloc(0) };
@@ -125,8 +135,8 @@ const APIS = [
   ["Autocomplete Search", `/api/v1/search/autocomplete?q=Riyadh&latitude=24.7136&longitude=46.6753&limit=10`],
   ["Get Place Types", "/api/v1/search/place_types"],
   ["Reverse Geocode", "/api/v1/reverse/geocode?latitude=24.7136&longitude=46.6753&na=true&radius_m=200"],
-  ["Route", `/api/v1/route/v1/driving/${coords}?steps=false&overview=simplified`],
-  ["Trip", `/api/v1/trip/v1/driving/${coords}?source=first&roundtrip=false`],
+  ["Route", `/api/v1/route/driving/${coords}?steps=false&overview=simplified`],
+  ["Trip", `/api/v1/trip/driving/${coords}?source=first&roundtrip=false`],
 ];
 let placeId = null;
 for (const [name, path] of APIS) {
